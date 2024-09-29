@@ -1,0 +1,6 @@
+.editor-provider-wrapper {
+
+	& > div:nth-child(2) {
+		overflow: hidden;
+	}
+}
