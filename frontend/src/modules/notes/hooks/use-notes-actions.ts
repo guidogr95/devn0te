@@ -5,6 +5,7 @@ import {
   createNoteRequest,
   deleteNoteByIdRequest,
   getNoteByIdRequest,
+  getNotesListNextPageRequest,
   getNotesListRequest,
   registerIsChangesUnsaved,
   setActiveNote,
@@ -15,12 +16,17 @@ import { NoteEntity } from "../core/entity/note.entity";
 import { UpdateNoteInput } from "../core/update-note-input";
 import { CreateNoteInput } from "../core/create-note-input";
 import { ShareNoteInput } from "../core/share-note-input";
+import { GetNotesSortOptions } from "../core/get-notes-sort-options";
 
 export const useNotesActions = () => {
   const dispatch = useDispatch<AppDispatch>();
 
-  const handleGetNotesList = () => {
-    dispatch(getNotesListRequest());
+  const handleGetNotesList = (value: { sortOptions: GetNotesSortOptions }) => {
+    dispatch(getNotesListRequest(value));
+  };
+
+  const handleGetNotesListNextPage = () => {
+    dispatch(getNotesListNextPageRequest());
   };
 
   const handleGetNoteById = (noteId: number) => {
@@ -65,6 +71,7 @@ export const useNotesActions = () => {
     handleRegisterIsChangesUnsaved,
     handleCreateNote,
     handleDeleteNoteById,
-    handleShareNote
+    handleShareNote,
+    handleGetNotesListNextPage
   };
 };

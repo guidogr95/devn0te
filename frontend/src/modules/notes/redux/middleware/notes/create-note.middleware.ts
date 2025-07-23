@@ -3,10 +3,13 @@ import {
   createNoteFailure,
   createNoteFinalized,
   createNoteSuccess,
+  getNotesListRequest,
   notesActions,
+  setActiveNote,
 } from "../../slice/notes.slice";
 import { NotesAdapter } from "../../../interface/adapters/notes.adapter";
 import { isHttpError } from "devnote/modules/auth/core/http-error";
+import { RootState } from "devnote/redux/store/store";
 
 export const createNoteFlowMiddleware: Middleware = (api) => next => async action => {
   next(action);
@@ -21,5 +24,20 @@ export const createNoteFlowMiddleware: Middleware = (api) => next => async actio
       api.dispatch(createNoteSuccess(response));
     }
     api.dispatch(createNoteFinalized());
+  }
+};
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export const createNoteSuccessMiddleware: Middleware<{}, RootState> = (api) => next => async action => {
+  next(action);
+
+  if (notesActions.createNoteSuccess.match(action)) {
+
+    api.dispatch(getNotesListRequest({
+      sortOptions: api.getState().notes.noteListSortOptions
+    }));
+
+    api.dispatch(setActiveNote(action.payload));
+
   }
 };

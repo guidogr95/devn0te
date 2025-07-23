@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "devnote/modules/shared
 import { CalendarIcon } from "lucide-react";
 import { cn } from "devnote/utils/shadcn";
 
+import "./note-item.css";
+
 type Props = {
 	note: NoteEntity
 }
@@ -38,7 +40,7 @@ export const NoteItem = ({
 				</div>
 			</CardHeader>
 			<CardContent className="pt-1 pb-3 px-3">
-				<span className={cn("text-sm text-gray-400 line-clamp-2 [&>*]:whitespace-pre-wrap", { "inline-table": !note.content })} dangerouslySetInnerHTML={{ __html: note.content }}/>
+				<span className={cn("note-content text-sm text-gray-400 line-clamp-2 [&>*]:whitespace-pre-wrap", { "inline-table": !note.content })} dangerouslySetInnerHTML={{ __html: note.content }}/>
 			</CardContent>
 		</Card>
 	);

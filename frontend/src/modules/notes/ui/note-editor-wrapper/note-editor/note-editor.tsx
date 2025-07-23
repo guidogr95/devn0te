@@ -14,11 +14,13 @@ import { NoteEditorHeader } from "./note-editor-header";
 
 import "devnote/styles/tiptap.css";
 import "./note-editor.css";
+import { CanvasNodeExtension } from "./canvas-node-extension";
 
 const lowlight = createLowlight(all);
 
 const extensions = [
 	StarterKit,
+	CanvasNodeExtension,
 	Highlight,
 	TaskList,
 	TaskItem,

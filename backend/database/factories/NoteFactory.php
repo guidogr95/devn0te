@@ -2,18 +2,17 @@
 
 namespace Database\Factories;
 
-use App\Domain\Notes\DTOs\CreateNoteDTO;
-use App\Domain\Notes\Entities\Note;
+use App\Notes\Application\DTOs\CreateNoteDTO;
+use App\Notes\Infrastructure\Persistence\Note;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\AppDomainNotesEntitiesNote>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Notes\Infrastructure\Persistence\Note>
  */
 class NoteFactory extends Factory
 {
-
     protected $model = Note::class;
 
     /**

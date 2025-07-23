@@ -9,13 +9,14 @@ import { loginFlowMiddleware, verifyTokenFlowMiddleware } from "devnote/modules/
 import { dismissToastMiddleware, showToastMiddleware } from "devnote/modules/shared/redux/middleware/toast.middleware";
 // Note middleware
 import { deleteNoteByIdFailureMiddleware, deleteNoteByIdFlowMiddleware, deleteNoteByIdSuccessMiddleware } from "devnote/modules/notes/redux/middleware/notes/delete-note-by-id.middleware";
-import { createNoteFlowMiddleware } from "devnote/modules/notes/redux/middleware/notes/create-note.middleware";
+import { createNoteFlowMiddleware, createNoteSuccessMiddleware } from "devnote/modules/notes/redux/middleware/notes/create-note.middleware";
 import { getNoteByIdFlowMiddleware } from "devnote/modules/notes/redux/middleware/notes/get-note-by-id.middleware";
-import { getNotesFlowMiddleware } from "devnote/modules/notes/redux/middleware/notes/get-notes.middleware";
+import { getNotesFlowMiddleware, getNotesListNextPageFlowMiddleware } from "devnote/modules/notes/redux/middleware/notes/get-notes.middleware";
 import { shareNoteFailureMiddleware, shareNoteFlowMiddleware, shareNoteSuccessMiddleware } from "devnote/modules/notes/redux/middleware/notes/share-note.middleware";
 import { cancelUpdateNoteByIdMiddleware, updateNoteByIdFlowMiddleware, updateNoteByIdSuccessMiddleware } from "devnote/modules/notes/redux/middleware/notes/update-note-by-id.middleware";
 // Shared note middleware
 import { getNoteBySharingUrlFlowMiddleware } from "devnote/modules/notes/redux/middleware/shared-note/get-note-by-sharing-url.middleware";
+import { setActiveNoteMiddleware } from "devnote/modules/notes/redux/middleware/notes/notes-list.middleware";
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -41,18 +42,21 @@ export const store = configureStore({
       showToastMiddleware,
       dismissToastMiddleware,
       // Note middleware
+      setActiveNoteMiddleware,
       getNotesFlowMiddleware,
       getNoteByIdFlowMiddleware,
       updateNoteByIdFlowMiddleware,
       updateNoteByIdSuccessMiddleware,
       cancelUpdateNoteByIdMiddleware,
       createNoteFlowMiddleware,
+      createNoteSuccessMiddleware,
       deleteNoteByIdFlowMiddleware,
       deleteNoteByIdSuccessMiddleware,
       deleteNoteByIdFailureMiddleware,
       shareNoteFlowMiddleware,
       shareNoteSuccessMiddleware,
       shareNoteFailureMiddleware,
+      getNotesListNextPageFlowMiddleware,
       // Shared note middleware
       getNoteBySharingUrlFlowMiddleware
     ),

@@ -42,7 +42,7 @@ export const shareNoteSuccessMiddleware: Middleware<{}, RootState>  = (api) => n
 
     api.dispatch(showToast({ type: "success", message: "Note shared successfully!" }));
 
-    const noteIndex = notes.notesList?.findIndex(_note => _note.id === note.id);
+    const noteIndex = notes.notesList?.data.findIndex(_note => _note.id === note.id);
 
     if (noteIndex !== -1 && noteIndex !== undefined) {
       api.dispatch(updateNoteListItem({ index: noteIndex, note }));

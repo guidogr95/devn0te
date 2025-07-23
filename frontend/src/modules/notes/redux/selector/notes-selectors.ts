@@ -1,5 +1,7 @@
 import { RootState } from "../../../../redux/store/store";
 
+export const selectIsLoadingNotesNextPage = (state: RootState) => state.notes.isLoadingNotesNextPage;
+
 export const selectNotesList = (state: RootState) => state.notes.notesList;
 
 export const selectIsLoadingNotes = (state: RootState) => state.notes.isLoadingNotes;
@@ -21,3 +23,5 @@ export const selectIsNoteDeletingMap = (state: RootState) => state.notes.isNoteD
 export const selectIsLoadingCreateNote = (state: RootState) => state.notes.isLoadingCreateNote;
 
 export const selectIsLoadingShareNote = (state: RootState) => state.notes.isLoadingShareNote;
+
+export const selectNotesListSortOptions = (state: RootState) => state.notes.noteListSortOptions;

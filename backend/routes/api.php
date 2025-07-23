@@ -1,8 +1,7 @@
 <?php
 
-use App\Domain\Notes\Entities\Note;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\NoteController;
+use App\Notes\Presentation\Api\NoteController;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 

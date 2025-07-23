@@ -1,4 +1,4 @@
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, useMemo } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -15,6 +15,7 @@ import { Routes } from "devnote/config/routing/routing";
 import { useNotesActions } from "devnote/modules/notes/hooks/use-notes-actions";
 import { useSelector } from "react-redux";
 import { selectIsLoadingCreateNote } from "devnote/modules/notes/redux/selector/notes-selectors";
+import { cn } from "devnote/utils/shadcn";
 
 export const Sidebar = ({ children }: PropsWithChildren<object>) => {
   const { isOpen, handleToggle } = useToggle(true);
@@ -23,6 +24,10 @@ export const Sidebar = ({ children }: PropsWithChildren<object>) => {
   const isLoadingCreateNote = useSelector(selectIsLoadingCreateNote);
 
   const { handleCreateNote } = useNotesActions();
+
+  const buttonIconClass = useMemo(() => {
+    return cn("h-4 w-4", { "mr-2": isOpen });
+  }, [isOpen]);
 
   return (
     <div className="flex h-screen">
@@ -60,7 +65,7 @@ export const Sidebar = ({ children }: PropsWithChildren<object>) => {
                 aria-label="Home"
                 onClick={() => navigate({ to: Routes.dashboard.path })}
               >
-                <Home className="mr-2 h-4 w-4" />
+                <Home className={buttonIconClass} />
                 <span className={isOpen ? "block" : "hidden"}>Home</span>
               </Button>
               <Button
@@ -71,7 +76,7 @@ export const Sidebar = ({ children }: PropsWithChildren<object>) => {
                   navigate({ to: Routes.dashboard.children.notes.path })
                 }
               >
-                <NotebookText className="mr-2 h-4 w-4" />
+                <NotebookText className={buttonIconClass} />
                 <span className={isOpen ? "block" : "hidden"}>Notes</span>
               </Button>
               <Button
@@ -79,7 +84,7 @@ export const Sidebar = ({ children }: PropsWithChildren<object>) => {
                 className="w-full justify-start"
                 aria-label="Users"
               >
-                <Users className="mr-2 h-4 w-4" />
+                <Users className={buttonIconClass} />
                 <span className={isOpen ? "block" : "hidden"}>Users</span>
               </Button>
               <Button
@@ -87,7 +92,7 @@ export const Sidebar = ({ children }: PropsWithChildren<object>) => {
                 className="w-full justify-start"
                 aria-label="Settings"
               >
-                <Settings className="mr-2 h-4 w-4" />
+                <Settings className={buttonIconClass} />
                 <span className={isOpen ? "block" : "hidden"}>Settings</span>
               </Button>
             </div>
@@ -99,7 +104,7 @@ export const Sidebar = ({ children }: PropsWithChildren<object>) => {
                 loading={isLoadingCreateNote}
                 onClick={() => handleCreateNote({ title: "", content: "" })}
               >
-                <PlusCircle className="mr-2 h-4 w-4" />
+                <PlusCircle className={buttonIconClass} />
                 <span className={isOpen ? "block" : "hidden"}>
                   Create new note
                 </span>

@@ -16,3 +16,4 @@ export * from "./generic-dialog";
 export * from "./dialog";
 export * from "./avatar";
 export * from "./note-viewer";
+export * from "./slider";

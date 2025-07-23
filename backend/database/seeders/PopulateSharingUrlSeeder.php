@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Domain\Notes\Entities\Note;
+use App\Notes\Infrastructure\Persistence\Note;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;

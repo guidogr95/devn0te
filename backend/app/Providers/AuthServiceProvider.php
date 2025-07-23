@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Domain\Notes\Entities\Note;
+use App\Notes\Infrastructure\Persistence\Note;
 use App\Policies\NotePolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Laravel\Passport\Passport;

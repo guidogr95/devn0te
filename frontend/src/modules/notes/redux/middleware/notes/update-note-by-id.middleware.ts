@@ -48,7 +48,7 @@ export const updateNoteByIdSuccessMiddleware: Middleware<{}, RootState> = (api) 
 
     api.dispatch(registerIsChangesUnsaved({ id: note.id, state: false }));
 
-    const noteIndex = notesList?.findIndex(_note => _note.id === note.id);
+    const noteIndex = notesList?.data.findIndex(_note => _note.id === note.id);
 
     if (noteIndex !== -1 && noteIndex !== undefined) {
       api.dispatch(updateNoteListItem({ index: noteIndex, note }));

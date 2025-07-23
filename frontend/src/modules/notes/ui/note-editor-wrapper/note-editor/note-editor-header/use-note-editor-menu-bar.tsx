@@ -114,6 +114,14 @@ export function useNoteEditorMenuBar() {
       type: "divider",
     },
     {
+      icon: "SquarePen",
+      title: "Draw",
+      action: () => editor?.chain().focus().insertContent([{ type: "canvasNode" }]).run()
+    },
+    {
+      type: "divider",
+    },
+    {
       icon: "Undo2",
       title: "Undo",
       action: () => editor?.chain().focus().undo().run(),

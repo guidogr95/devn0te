@@ -55,7 +55,7 @@ class AuthController extends Controller
 		} catch (\Exception $e) {
 
 			Log::error("Failed to login: {$e->getMessage()}");
-			return response()->json(['error' => 'Failed to login.'], Response::HTTP_INTERNAL_SERVER_ERROR);
+			return response()->json(['error' => "Failed to login: {$e->getMessage()}"], Response::HTTP_INTERNAL_SERVER_ERROR);
 
 		}
 

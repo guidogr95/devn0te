@@ -1,0 +1,5 @@
+.note-content {
+	canvas[data-type="canvasNode"] {
+		display: none;
+	}
+}

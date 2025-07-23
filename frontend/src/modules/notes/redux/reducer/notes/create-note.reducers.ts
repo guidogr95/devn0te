@@ -9,7 +9,6 @@ export const createNoteRequest = (state: NotesState, _action: PayloadAction<Crea
 };
 
 export const createNoteSuccess = (state: NotesState, action: PayloadAction<NoteEntity>) => {
-  state.notesList?.push(action.payload);
   state.activeNote = action.payload;
 };
 

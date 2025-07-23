@@ -2,13 +2,14 @@ import axiosInstance from "devnote/config/api/axios-instance";
 import { HttpError } from "devnote/modules/auth/core/http-error";
 import { handleApiRequest } from "devnote/utils/handle-api-request";
 import { CreateNoteInput } from "../../core/create-note-input";
-import { GetNotesReponse, NoteResponse } from "../../core/get-notes-response";
+import { GetNotesReponse, NoteResponse, PaginatedNotesValueObject } from "../../core/get-notes-response";
 import { NoteEntity } from "../../core/entity/note.entity";
 import { NoteMapper } from "../mappers/notes.mapper";
 import { UpdateNoteInput } from "../../core/update-note-input";
 import { AxiosRequestConfig } from "axios";
 import { ShareNoteInput } from "../../core/share-note-input";
 import { GetNoteBySharingUrlInput } from "../../core/get-note-by-sharing-url-input";
+import { GetNotesInput } from "../../core/get-notes-input";
 
 export class NotesAdapter {
   static async createNote(input: CreateNoteInput): Promise<NoteEntity | HttpError> {
@@ -17,7 +18,7 @@ export class NotesAdapter {
 
 		return handleApiRequest(() =>
       axiosInstance.post<NoteResponse>("/notes", body)
-        .then(response => NoteMapper.getNoteResponseToEntity(response.data))
+        .then(response => NoteMapper.noteResponseToEntity(response.data))
     );
   }
 
@@ -25,7 +26,7 @@ export class NotesAdapter {
 
 		return handleApiRequest(() =>
       axiosInstance.delete<NoteResponse>(`/notes/${id}`)
-        .then(response => NoteMapper.getNoteResponseToEntity(response.data))
+        .then(response => NoteMapper.noteResponseToEntity(response.data))
     );
   }
 
@@ -35,15 +36,17 @@ export class NotesAdapter {
 
 		return handleApiRequest(() =>
       axiosInstance.patch<NoteResponse>(`/notes/${id}`, body, { signal: config?.signal })
-        .then(response => NoteMapper.getNoteResponseToEntity(response.data))
+        .then(response => NoteMapper.noteResponseToEntity(response.data))
     );
   }
 
-  static async getNotes(): Promise<NoteEntity[] | HttpError> {
+  static async getNotes(input?: GetNotesInput): Promise<PaginatedNotesValueObject | HttpError> {
+
+    const params = input ? NoteMapper.getNotesInputToDTO(input) : {};
 
 		return handleApiRequest(() =>
-      axiosInstance.get<GetNotesReponse>("/notes")
-        .then(response => NoteMapper.getNotesResponseToEntity(response.data))
+      axiosInstance.get<GetNotesReponse>("/notes", { params })
+        .then(response => NoteMapper.getNotesResponseToValueObject(response.data))
     );
   }
 
@@ -51,7 +54,7 @@ export class NotesAdapter {
 
 		return handleApiRequest(() =>
       axiosInstance.get<NoteResponse>(`/note/${noteId}`)
-        .then(response => NoteMapper.getNoteResponseToEntity(response.data))
+        .then(response => NoteMapper.noteResponseToEntity(response.data))
     );
   }
 
@@ -61,7 +64,7 @@ export class NotesAdapter {
 
 		return handleApiRequest(() =>
       axiosInstance.post<NoteResponse>(`/notes/${noteId}/share`, body)
-        .then(response => NoteMapper.getNoteResponseToEntity(response.data))
+        .then(response => NoteMapper.noteResponseToEntity(response.data))
     );
   }
 
@@ -71,7 +74,7 @@ export class NotesAdapter {
     
 		return handleApiRequest(() =>
       axiosInstance.get<NoteResponse>(`/shared-notes/${sharingUrl}`, { params })
-        .then(response => NoteMapper.getNoteResponseToEntity(response.data))
+        .then(response => NoteMapper.noteResponseToEntity(response.data))
     );
   }
 

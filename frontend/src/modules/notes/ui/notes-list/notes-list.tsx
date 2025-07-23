@@ -1,19 +1,23 @@
-import { ScrollArea, Skeleton } from "devnote/modules/shared";
+import { Skeleton } from "devnote/modules/shared";
 import { useNotesList } from "./use-notes-list";
 import { NoteItem } from "./note-item/note-item";
 import { NoteItemSkeleton } from "./note-item/note-item-skeleton";
+import { InfiniteScrollArea } from "devnote/modules/shared/ui/scroll-area/infinite-scroll-area";
+import { NotesListActions } from "./notes-list-actions";
 
 export const NotesList = () => {
 
 	const {
 		notesList,
 		isLoadingNotes,
-		notesError
+		notesError,
+		isLoadingNotesNextPage,
+		handleGetNotesListNextPage
 	} = useNotesList();
 
 	if (isLoadingNotes) {
 		return (
-			<div className="p-4 bg-bg-secondary h-full max-w-96 w-full">
+			<div className="p-4 bg-bg-secondary h-full max-w-96 w-full flex flex-col overflow-hidden">
 			<div className="font-bold text-lg mb-3 text-gray-100">
 				Notes
 			</div>
@@ -38,21 +42,26 @@ export const NotesList = () => {
 	}
 
 	return (
-		<div className="p-4 bg-bg-secondary h-full max-w-96 w-full">
+		<div className="p-4 bg-bg-secondary h-full max-w-96 w-full flex flex-col overflow-hidden">
 			<div className="font-bold text-lg mb-3 text-gray-100">
 				Notes
 			</div>
-			<div className="text-gray-500 mb-3 border-b border-t border-gray-600 py-1 text-sm">
-				{notesList.length} notes
+			<div className="text-gray-500 mb-3 border-b border-t border-gray-600 py-1 text-sm flex justify-between items-center">
+				<span>{notesList.data.length} notes</span>
+				<NotesListActions />
 			</div>
-			<div>
-				<ScrollArea className="flex flex-col gap-4">
-					{notesList.map(note => (
+			<div className="flex flex-col flex-1 overflow-hidden">
+				<InfiniteScrollArea
+					hasMore={notesList.pagination.pagesLeft > 0}
+					isLoading={isLoadingNotesNextPage}
+					className="h-full w-full"
+					onScrolledToBottom={handleGetNotesListNextPage}>
+					{notesList.data.map(note => (
 						<NoteItem
 							key={note.id}
 							note={note}/>
 					))}
-				</ScrollArea>
+				</InfiniteScrollArea>
 			</div>
 		</div>
 	);

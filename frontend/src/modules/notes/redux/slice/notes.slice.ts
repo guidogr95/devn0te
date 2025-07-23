@@ -7,10 +7,13 @@ import * as deleteNoteByIdReducers from "../reducer/notes/delete-note-by-id.redu
 import * as getNotesListReducers from "../reducer/notes/get-notes-list.reducers";
 import * as shareNoteReducers from "../reducer/notes/share-note.reducers";
 import { DomainErrorData } from "devnote/modules/auth/core/http-error";
+import { PaginatedNotesValueObject } from "../../core/get-notes-response";
+import { GetNotesSortOptions } from "../../core/get-notes-sort-options";
 
 export type NotesState = {
-  notesList: NoteEntity[] | null
+  notesList: PaginatedNotesValueObject | null
 	isLoadingNotes: boolean
+	isLoadingNotesNextPage: boolean
 	isLoadingActiveNote: boolean
   notesError?: string
   updateNoteError?: string
@@ -25,11 +28,14 @@ export type NotesState = {
   deletingNoteError?: string
   isLoadingShareNote: boolean;
   sharingNoteError?: DomainErrorData;
+  notesNextPageError?: string;
+  noteListSortOptions: GetNotesSortOptions
 }
 
 const initialState: NotesState = {
   notesList: null,
 	isLoadingNotes: false,
+  isLoadingNotesNextPage: false,
 	isLoadingActiveNote: false,
 	isLoadingCreateNote: false,
   creatingNoteError: undefined,
@@ -41,7 +47,12 @@ const initialState: NotesState = {
   isNoteDeletingMap: {},
   updateNoteAbortControllerMap: {},
   isLoadingShareNote: false,
-  sharingNoteError: undefined
+  sharingNoteError: undefined,
+  notesNextPageError: undefined,
+  noteListSortOptions: {
+    value: "updatedAt",
+    direction: "desc"
+  }
 };
 
 const notesSlice = createSlice({
@@ -60,7 +71,7 @@ const notesSlice = createSlice({
     ...getNoteByIdReducers,
     // get note list
     ...getNotesListReducers,
-    setNotesList(state, action: PayloadAction<NoteEntity[]>) {
+    setNotesList(state, action: PayloadAction<PaginatedNotesValueObject>) {
       state.notesList = action.payload;
     },
     setActiveNote(state, action: PayloadAction<NoteEntity>) {
@@ -68,7 +79,7 @@ const notesSlice = createSlice({
     },
     updateNoteListItem(state, action: PayloadAction<{ index: number, note: NoteEntity }>) {
       if (!state.notesList) return;
-      state.notesList[action.payload.index] = action.payload.note;
+      state.notesList.data[action.payload.index] = action.payload.note;
     },
   }
 });
@@ -96,6 +107,10 @@ export const {
   getNotesListSuccess,
   getNotesListFailure,
   getNotesListFinalized,
+  getNotesListNextPageRequest,
+  getNotesListNextPageSuccess,
+  getNotesListNextPageFailure,
+  getNotesListNextPageFinalized,
   getNoteByIdRequest,
   getNoteByIdSuccess,
   getNoteByIdFailure,

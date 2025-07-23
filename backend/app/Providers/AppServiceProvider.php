@@ -2,10 +2,10 @@
 
 namespace App\Providers;
 
-use App\Domain\Notes\Repositories\NoteRepositoryInterface;
-use App\Domain\Notes\Services\NoteApplicationService;
-use App\Domain\Notes\Services\NoteDomainService;
-use App\Infrastructure\Notes\Repositories\EloquentNoteRepository;
+use App\Notes\Domain\Repositories\NoteRepositoryInterface;
+use App\Notes\Application\Services\NoteApplicationService;
+use App\Notes\Domain\Services\NoteDomainService;
+use App\Notes\Infrastructure\Repositories\EloquentNoteRepository;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider

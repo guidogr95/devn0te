@@ -1,6 +1,8 @@
-import { NoteSharingTypeEnum } from "./enums/note-sharing-type.enum"
+import { ApiPaginatedResponse, PaginatedResponse } from "devnote/modules/shared/core/paginated-response.type";
+import { NoteSharingTypeEnum } from "./enums/note-sharing-type.enum";
+import { NoteEntity } from "./entity/note.entity";
 
-export type GetNotesReponse = NoteResponse[]
+export type GetNotesReponse = ApiPaginatedResponse<NoteResponse>;
 
 export type NoteResponse = {
 	id: number
@@ -13,3 +15,5 @@ export type NoteResponse = {
 	sharing_password: null | string
 	sharing_url: string
 }
+
+export type PaginatedNotesValueObject = PaginatedResponse<NoteEntity>

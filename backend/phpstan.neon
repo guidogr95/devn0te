@@ -9,4 +9,7 @@ parameters:
 		- tests
 	excludePaths:
 		- bootstrap/cache/*
+	
+	scanDirectories:
+		- app/Notes
 		

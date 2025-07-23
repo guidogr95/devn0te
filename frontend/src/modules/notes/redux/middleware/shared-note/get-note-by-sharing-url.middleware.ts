@@ -18,7 +18,7 @@ export const getNoteBySharingUrlFlowMiddleware: Middleware = (api) => next => as
   }
 };
 
-export const getNoteBySharingUrlFailureMiddleware: Middleware = (api) => next => async action => {
+export const getNoteBySharingUrlFailureMiddleware: Middleware = (_api) => next => async action => {
   next(action);
 
   if (sharedNoteActions.getNoteBySharingUrlFailure.match(action)) {

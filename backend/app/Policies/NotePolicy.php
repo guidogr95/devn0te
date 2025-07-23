@@ -2,8 +2,8 @@
 
 namespace App\Policies;
 
-use App\Domain\Notes\Entities\Note;
-use App\Domain\Notes\Enums\NoteSharingType;
+use App\Notes\Infrastructure\Persistence\Note;
+use App\Notes\Domain\Enums\NoteSharingType;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
@@ -13,7 +13,7 @@ class NotePolicy
 
     /**
      * Determine whether the user can view the note by share URL.
-     * @param \App\Domain\Notes\Entities\Note $note
+     * @param \App\Notes\Infrastructure\Persistence\Note $note
      * @param string|null $password
      * @return bool
      */

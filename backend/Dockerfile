@@ -16,7 +16,6 @@ RUN apt-get update && apt-get -qq -y install curl --no-install-recommends \
     libpng-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) zip pdo  pdo_pgsql  bcmath gd sockets
-RUN pecl install grpc && docker-php-ext-enable grpc
 RUN apt-get install -y autoconf pkg-config libssl-dev
 
 # Clear cache
