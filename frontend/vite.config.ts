@@ -24,6 +24,7 @@ export default defineConfig({
     esbuildOptions: {
       target: "es2020"
     },
+    include: ["github-markdown-css"],
   },
   resolve: {
     alias: [{ find: "devnote", replacement: path.resolve(__dirname, "src") }]

@@ -6,7 +6,7 @@ export const NotesScreen = ({ children }: PropsWithChildren) => {
 	return (
 		<div className="flex h-full w-full">
 			<div className="flex w-full h-full">
-				<NotesList />
+				{/* <NotesList /> */}
 				{children}
 			</div>
 		</div>

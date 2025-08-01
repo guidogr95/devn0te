@@ -4,6 +4,7 @@ import { NoteEditor } from "./note-editor/note-editor";
 import { useNoteEditorWrapper } from "./use-note-editor-wrapper";
 import { DocumentHeader } from "./document-header/document-header";
 import { GetNoteErrorTypesEnum } from "../../errors/get-note-error-types.enum";
+// import { MonacoNoteEditor } from "./monaco-editor";
 
 export const NoteEditorWrapper = () => {
 
@@ -40,7 +41,10 @@ export const NoteEditorWrapper = () => {
 				<DocumentHeader />
 			</div>
 			<div className="flex-1 p-8 overflow-hidden">
-				<NoteEditor note={activeNote} />
+				{/* <MonacoNoteEditor 
+					initialContent=""
+					onSave={() => {}}/> */}
+				{/* <NoteEditor note={activeNote} /> */}
 			</div>
 		</div>
 	);
