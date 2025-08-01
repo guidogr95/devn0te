@@ -4,6 +4,7 @@ import { NoteItem } from "./note-item/note-item";
 import { NoteItemSkeleton } from "./note-item/note-item-skeleton";
 import { InfiniteScrollArea } from "devnote/modules/shared/ui/scroll-area/infinite-scroll-area";
 import { NotesListActions } from "./notes-list-actions";
+import { SpotlightSearch } from "../spotlight-search";
 
 export const NotesList = () => {
 
@@ -43,8 +44,11 @@ export const NotesList = () => {
 
 	return (
 		<div className="p-4 bg-bg-secondary h-full max-w-96 w-full flex flex-col overflow-hidden">
-			<div className="font-bold text-lg mb-3 text-gray-100">
-				Notes
+			<div className="font-bold text-lg mb-3 text-gray-100 flex justify-between">
+				<span>
+					Notes
+				</span>
+				<SpotlightSearch />
 			</div>
 			<div className="text-gray-500 mb-3 border-b border-t border-gray-600 py-1 text-sm flex justify-between items-center">
 				<span>{notesList.data.length} notes</span>

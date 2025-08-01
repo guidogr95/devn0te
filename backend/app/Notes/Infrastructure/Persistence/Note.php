@@ -20,19 +20,30 @@ class Note extends Model
 		'user_id',
 		'sharing_type',
 		'sharing_url',
-		'sharing_password'
+		'sharing_password',
+		'searchable_text',
+		'preview'
 	];
 
 	protected $casts = [
 		'title' => 'string',
 		'content' => 'string',
+		'searchable_text' => 'string',
+		'preview' => 'string',
 		'sharing_type' => NoteSharingType::class
 	];
 
-	public function updateContent(?string $title, ?string $content): void
+	public function updateContent(
+		?string $title,
+		?string $content,
+		?string $searchableText,
+		?string $preview
+	): void
 	{
 		$this->title = $title;
 		$this->content = $content;
+		$this->searchable_text = $searchableText;
+		$this->preview = $preview;
 	}
 
 	public function changeSharingType(NoteSharingType $sharingType, ?string $password = null): void

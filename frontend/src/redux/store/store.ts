@@ -16,7 +16,9 @@ import { shareNoteFailureMiddleware, shareNoteFlowMiddleware, shareNoteSuccessMi
 import { cancelUpdateNoteByIdMiddleware, updateNoteByIdFlowMiddleware, updateNoteByIdSuccessMiddleware } from "devnote/modules/notes/redux/middleware/notes/update-note-by-id.middleware";
 // Shared note middleware
 import { getNoteBySharingUrlFlowMiddleware } from "devnote/modules/notes/redux/middleware/shared-note/get-note-by-sharing-url.middleware";
-import { setActiveNoteMiddleware } from "devnote/modules/notes/redux/middleware/notes/notes-list.middleware";
+import { setActiveNoteIdMiddleware, setActiveNoteMiddleware } from "devnote/modules/notes/redux/middleware/notes/notes-list.middleware";
+import { deltaSyncNotesFlowMiddleware } from "devnote/modules/notes/redux/middleware/notes/delta-sync-notes.middleware";
+import { queryLocalNotesFlowMiddleware } from "devnote/modules/notes/redux/middleware/notes/query-local-notes.middleware";
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -30,8 +32,17 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        ignoredActions: ["notes/setUpdateNoteAbortController", "toast/showToast"],
-        ignoredPaths: ["notes.updateNoteAbortControllerMap"],
+        ignoredActions: [
+          "notes/setUpdateNoteAbortController",
+          "toast/showToast",
+          // get note by id
+          "notes/getNoteByIdFailure"
+        ],
+        ignoredPaths: [
+          "notes.updateNoteAbortControllerMap",
+          // get note by id
+          "notes.activeNoteError",
+        ],
       }
     })
     .prepend(
@@ -43,6 +54,7 @@ export const store = configureStore({
       dismissToastMiddleware,
       // Note middleware
       setActiveNoteMiddleware,
+      setActiveNoteIdMiddleware,
       getNotesFlowMiddleware,
       getNoteByIdFlowMiddleware,
       updateNoteByIdFlowMiddleware,
@@ -58,7 +70,11 @@ export const store = configureStore({
       shareNoteFailureMiddleware,
       getNotesListNextPageFlowMiddleware,
       // Shared note middleware
-      getNoteBySharingUrlFlowMiddleware
+      getNoteBySharingUrlFlowMiddleware,
+      // Delta Sync notes middleware,
+      deltaSyncNotesFlowMiddleware,
+      // local notes query
+      queryLocalNotesFlowMiddleware
     ),
 });
 

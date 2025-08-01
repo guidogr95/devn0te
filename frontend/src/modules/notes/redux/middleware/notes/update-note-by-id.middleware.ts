@@ -2,13 +2,12 @@ import { Middleware } from "@reduxjs/toolkit";
 import {
   notesActions,
   updateNoteByIdFailure,
-  updateNoteListItem,
   updateNoteByIdFinalized,
   updateNoteByIdSuccess,
   setUpdateNoteAbortController,
   cancelUpdateNoteAbortController,
   registerIsChangesUnsaved,
-  setActiveNote
+  deltaSyncNotesRequest
 } from "../../slice/notes.slice";
 import { NotesAdapter } from "../../../interface/adapters/notes.adapter";
 import { isHttpError } from "devnote/modules/auth/core/http-error";
@@ -44,18 +43,13 @@ export const updateNoteByIdSuccessMiddleware: Middleware<{}, RootState> = (api) 
     const note = action.payload;
 
     const state = api.getState();
-    const { notesList, activeNote } = state.notes;
 
     api.dispatch(registerIsChangesUnsaved({ id: note.id, state: false }));
 
-    const noteIndex = notesList?.data.findIndex(_note => _note.id === note.id);
+    const { user } = state.auth;
 
-    if (noteIndex !== -1 && noteIndex !== undefined) {
-      api.dispatch(updateNoteListItem({ index: noteIndex, note }));
-    }
-
-    if (activeNote?.id === note.id) {
-      api.dispatch(setActiveNote(note));
+    if (user) {
+      api.dispatch(deltaSyncNotesRequest(user.id));
     }
   }
 };

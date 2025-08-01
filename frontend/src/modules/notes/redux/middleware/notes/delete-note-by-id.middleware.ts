@@ -4,7 +4,8 @@ import {
   deleteNoteByIdFailure,
   deleteNoteByIdSuccess,
   deleteNoteByIdFinalized,
-  setNotesList
+  setNotesList,
+  setActiveNote
 } from "../../slice/notes.slice";
 import { NotesAdapter } from "../../../interface/adapters/notes.adapter";
 import { isHttpError } from "devnote/modules/auth/core/http-error";
@@ -42,13 +43,14 @@ export const deleteNoteByIdSuccessMiddleware: Middleware<{}, RootState> = (api) 
     const note = action.payload;
 
     if (activeNote?.id === note.id) {
-      // api
+      api.dispatch(setActiveNote(null));
     }
 
-    if (notesList?.length) {
-      const updatedNotesList = notesList.filter(_note => _note.id !== note.id);
-      api.dispatch(setNotesList(updatedNotesList));
-    }
+    // todo handle refresh
+    // if (notesList?.data.length) {
+    //   const updatedNotesList = notesList.data.filter(_note => _note.id !== note.id);
+    //   api.dispatch(setNotesList(updatedNotesList));
+    // }
 
   }
 };

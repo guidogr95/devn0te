@@ -1,7 +1,7 @@
 import { PayloadAction } from "@reduxjs/toolkit";
 import { NotesState } from "../../slice/notes.slice";
-import { PaginatedNotesValueObject } from "devnote/modules/notes/core/get-notes-response";
 import { GetNotesSortOptions } from "devnote/modules/notes/core/get-notes-sort-options";
+import { PaginatedNotesPreviewValueObject } from "devnote/modules/notes/core/get-notes-preview-response";
 
 export const getNotesListRequest = (state: NotesState, action: PayloadAction<{ sortOptions: GetNotesSortOptions}>) => {
   state.isLoadingNotes = true;
@@ -10,7 +10,7 @@ export const getNotesListRequest = (state: NotesState, action: PayloadAction<{ s
   state.noteListSortOptions = action.payload.sortOptions;
 };
 
-export const getNotesListSuccess = (state: NotesState, action: PayloadAction<PaginatedNotesValueObject>) => {
+export const getNotesListSuccess = (state: NotesState, action: PayloadAction<PaginatedNotesPreviewValueObject>) => {
   state.notesList = action.payload;
 };
 
@@ -27,7 +27,7 @@ export const getNotesListNextPageRequest = (state: NotesState) => {
   state.notesNextPageError = "";
 };
 
-export const getNotesListNextPageSuccess = (state: NotesState, action: PayloadAction<PaginatedNotesValueObject>) => {
+export const getNotesListNextPageSuccess = (state: NotesState, action: PayloadAction<PaginatedNotesPreviewValueObject>) => {
   if (!state.notesList) return;
   state.notesList.data = [...state.notesList.data, ...action.payload.data];
   state.notesList.pagination = action.payload.pagination;

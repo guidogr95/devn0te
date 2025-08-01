@@ -5,9 +5,10 @@ import { CalendarIcon } from "lucide-react";
 import { cn } from "devnote/utils/shadcn";
 
 import "./note-item.css";
+import { NotePreviewEntity } from "devnote/modules/notes/core/entity/note-preview.entity";
 
 type Props = {
-	note: NoteEntity
+	note: NotePreviewEntity
 }
 
 export const NoteItem = ({
@@ -15,7 +16,7 @@ export const NoteItem = ({
 }: Props) => {
 	const {
 		isActive,
-		handleSetNote
+		handleSetNoteId
 	} = useNoteItem(note);
 
 	return (
@@ -26,7 +27,7 @@ export const NoteItem = ({
 					? "ring-2 ring-primary shadow-lg border-note-primary" 
 					: "hover:shadow-md hover:bg-gray-750 border-b-gray-600"
 			}`}
-			onClick={handleSetNote}
+			onClick={handleSetNoteId}
 		>
 			<CardHeader className="px-4 py-5">
 				<div className="flex justify-between items-start">
@@ -40,7 +41,7 @@ export const NoteItem = ({
 				</div>
 			</CardHeader>
 			<CardContent className="pt-1 pb-3 px-3">
-				<span className={cn("note-content text-sm text-gray-400 line-clamp-2 [&>*]:whitespace-pre-wrap", { "inline-table": !note.content })} dangerouslySetInnerHTML={{ __html: note.content }}/>
+				<span className={cn("note-content text-sm text-gray-400 line-clamp-2 [&>*]:whitespace-pre-wrap", { "inline-table": !note.preview })} dangerouslySetInnerHTML={{ __html: note.preview }}/>
 			</CardContent>
 		</Card>
 	);

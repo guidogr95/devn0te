@@ -1,11 +1,9 @@
 import { Middleware } from "@reduxjs/toolkit";
 import {
   notesActions,
-  setActiveNote,
   shareNoteFailure,
   shareNoteFinalized,
   shareNoteSuccess,
-  updateNoteListItem,
 } from "../../slice/notes.slice";
 import { NotesAdapter } from "../../../interface/adapters/notes.adapter";
 import { isHttpError } from "devnote/modules/auth/core/http-error";
@@ -36,21 +34,7 @@ export const shareNoteSuccessMiddleware: Middleware<{}, RootState>  = (api) => n
 
   if (notesActions.shareNoteSuccess.match(action)) {
 
-    const { notes } = api.getState();
-
-    const note = action.payload;
-
     api.dispatch(showToast({ type: "success", message: "Note shared successfully!" }));
-
-    const noteIndex = notes.notesList?.data.findIndex(_note => _note.id === note.id);
-
-    if (noteIndex !== -1 && noteIndex !== undefined) {
-      api.dispatch(updateNoteListItem({ index: noteIndex, note }));
-    }
-
-    if (notes.activeNote?.id === note.id) {
-      api.dispatch(setActiveNote(note));
-    }
 
   }
 };

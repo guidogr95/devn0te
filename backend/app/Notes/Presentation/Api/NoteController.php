@@ -8,6 +8,7 @@ use App\Notes\Application\DTOs\UpdateNoteDTO;
 use App\Notes\Application\DTOs\UserNotesSortOptionsDTO;
 use App\Notes\Domain\Enums\NoteErrorCode;
 use App\Notes\Domain\Enums\NoteSharingType;
+use App\Notes\Domain\Services\NoteContentStripper;
 use App\Notes\Application\Services\NoteApplicationService;
 use App\Http\Responses\PaginatedResponse;
 use Illuminate\Http\JsonResponse;
@@ -17,16 +18,22 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Symfony\Component\HttpFoundation\Response;
 use App\Http\Controllers\Controller;
+use App\Notes\Domain\ValueObjects\NotePreview;
+use DateTime;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class NoteController extends Controller
 {
 	protected NoteApplicationService $noteAppService;
+	protected NoteContentStripper $noteContentStripper;
 
 	public function __construct(
-		NoteApplicationService $noteAppService
+		NoteApplicationService $noteAppService,
+		NoteContentStripper $noteContentStripper,
 	)
 	{
 		$this->noteAppService = $noteAppService;
+		$this->noteContentStripper = $noteContentStripper;
 	}
 
 	public function index(Request $request): JsonResponse
@@ -68,6 +75,9 @@ class NoteController extends Controller
 			$createNoteDTO = new CreateNoteDTO(
 				title: $validated['title'] ?? null,
 				content: $validated['content'] ?? null,
+				searchableText: $validated['content'] ?? null
+					? $this->noteContentStripper->stripHtmlToText($validated['content'])
+					: null,
 				userId: $userId,
 				sharingType: NoteSharingType::PRIVATE,
 			);
@@ -97,6 +107,12 @@ class NoteController extends Controller
 			$updateNoteDTO = new UpdateNoteDTO(
 				title: $validated['title'] ?? null,
 				content: $validated['content'] ?? null,
+				searchableText: $validated['content'] 
+					? $this->noteContentStripper->stripHtmlToText($validated['content'])
+					: null,
+				preview: $validated['content'] 
+					? (new NotePreview($validated['content']))->getValue()
+					: null
 			);
 
 			$note = $this->noteAppService->updateNote($id, $userId, $updateNoteDTO);
@@ -128,6 +144,31 @@ class NoteController extends Controller
 		}
 	}
 
+	public function getUserNotesPreview(Request $request): JsonResponse
+	{
+		try {
+
+			$validated = $request->validate([
+				'page_size' => 'integer|min:1|max:100',
+			]);
+
+			$pageSize = $validated['page_size'] ?? 10;
+			$userId = $this->getAuthenticatedUserId();
+			$sortOptions = UserNotesSortOptionsDTO::fromRequest($request->all());
+
+			$data = $this->noteAppService->getUserNotesPreview($userId, $pageSize, $sortOptions);
+			$response = new PaginatedResponse($data);
+
+			return response()->json($response->toArray(), Response::HTTP_OK);
+
+		} catch (\Exception $e) {
+
+			Log::error("Failed to retrieve notes for user: {$e->getMessage()}");
+			return response()->json(['error' => 'Failed to retrieve notes.'], Response::HTTP_INTERNAL_SERVER_ERROR);
+
+		}
+	}
+
 	public function getUserNoteById(Request $request, int $id): JsonResponse
 	{
 		try {
@@ -136,11 +177,64 @@ class NoteController extends Controller
 			$note = $this->noteAppService->getUserNote($id, $userId);
 
 			return response()->json($note, Response::HTTP_OK);
+		} catch (ModelNotFoundException $e) {
+
+			return response()->json([
+            'error' => 'Note not found.'
+        ], Response::HTTP_NOT_FOUND);
+
 		} catch (\Exception $e) {
 
 			Log::error("Failed to retrieve note $id for user: {$e->getMessage()}");
-			return response()->json(['error' => 'Failed to retrieve note.'], Response::HTTP_INTERNAL_SERVER_ERROR);
+			return response()->json(['error' => "{$e->getMessage()}"], Response::HTTP_INTERNAL_SERVER_ERROR);
 
+		}
+	}
+
+	public function getUserNotesForSync(Request $request): JsonResponse
+	{
+		try {
+
+			$userId = $this->getAuthenticatedUserId();
+			$validated = $request->validate([
+				'last_sync' => 'nullable|string|date_format:Y-m-d\TH:i:s\Z'
+			]);
+
+			$lastSyncString = $validated['last_sync'] ?? null;
+
+			$lastSync = $lastSyncString
+				? new DateTime($validated['last_sync'])
+				: null;
+
+			$notes = $this->noteAppService->getUserNotesForSync($userId, $lastSync);
+
+			return response()->json(['notes' => $notes]);
+
+		} catch (\Exception $e) {
+			Log::error("Failed to retrieve notes for sync for user_id $userId: {$e->getMessage()}");
+			return response()->json(['error' => 'Failed to retrieve notes for sync.'], Response::HTTP_INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	public function getDeltaNotes(Request $request): JsonResponse
+	{
+		try {
+
+			$userId = $this->getAuthenticatedUserId();
+
+			$validated = $request->validate([
+				'last_sync' => 'sometimes|string|date_format:Y-m-d\TH:i:s.v\Z'
+			]);
+
+			$since = $validated['last_sync'] ?? '1970-01-01T00:00:00Z';
+
+			$delta = $this->noteAppService->getDeltaNotesByUser($userId, $since);
+
+			return response()->json($delta);
+
+		} catch (\Exception $e) {
+			Log::error("Failed to retrieve delta notes for sync $userId for user: {$e->getMessage()}");
+			return response()->json(['error' => "Failed to retrieve delta notes for sync. {$e->getMessage()}"], Response::HTTP_INTERNAL_SERVER_ERROR);
 		}
 	}
 

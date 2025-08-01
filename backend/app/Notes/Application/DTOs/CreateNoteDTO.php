@@ -11,6 +11,7 @@ class CreateNoteDTO
 		public readonly NoteSharingType $sharingType,
 		public readonly ?string $title = null,
 		public readonly ?string $content = null,
+		public readonly ?string $searchableText = null,
 		public readonly ?string $sharingPassword = null
 	) {}
 }

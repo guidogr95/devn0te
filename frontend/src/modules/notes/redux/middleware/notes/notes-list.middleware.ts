@@ -7,8 +7,23 @@ export const setActiveNoteMiddleware: Middleware = (_api) => next => async actio
   next(action);
 
   if (notesActions.setActiveNote.match(action)) {
-    const note = action.payload;
+    //
+  }
+};
 
-		router.navigate({ to: Routes.dashboard.children.notes.params.getWithParams({ id: note.id }),  });
+export const setActiveNoteIdMiddleware: Middleware = (_api) => next => async action => {
+  next(action);
+
+  if (notesActions.setActiveNoteId.match(action)) {
+    const noteId = action.payload;
+
+    let path = Routes.dashboard.children.notes.path as string;
+
+
+    if (noteId) {
+      path = Routes.dashboard.children.notes.params.getWithParams({ id: noteId });
+    }
+
+		router.navigate({ to: path });
   }
 };

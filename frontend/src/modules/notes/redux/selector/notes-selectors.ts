@@ -12,6 +12,8 @@ export const selectActiveNoteError = (state: RootState) => state.notes.activeNot
 
 export const selectActiveNote = (state: RootState) => state.notes.activeNote;
 
+export const selectActiveNoteId = (state: RootState) => state.notes.activeNoteId;
+
 export const selectIsLoadingActiveNote = (state: RootState) => state.notes.isLoadingActiveNote;
 
 export const selectIsNoteUpdatingMap = (state: RootState) => state.notes.isNoteUpdatingMap;

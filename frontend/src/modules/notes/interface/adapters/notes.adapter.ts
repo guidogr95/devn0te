@@ -10,6 +10,12 @@ import { AxiosRequestConfig } from "axios";
 import { ShareNoteInput } from "../../core/share-note-input";
 import { GetNoteBySharingUrlInput } from "../../core/get-note-by-sharing-url-input";
 import { GetNotesInput } from "../../core/get-notes-input";
+import { GetNotesForSyncResponse } from "../../core/get-notes-for-sync-response";
+import { SyncNoteEntity } from "../../core/entity/sync-note.entity";
+import { GetDeltaNotesResponse } from "../../core/get-delta-notes-response";
+import { GetDeltaNotesValueObject } from "../../core/get-delta-notes-value-object";
+import { GetNoteErrorMapper } from "../mappers/get-note-error.mapper";
+import { GetNotesPreviewReponse, PaginatedNotesPreviewValueObject } from "../../core/get-notes-preview-response";
 
 export class NotesAdapter {
   static async createNote(input: CreateNoteInput): Promise<NoteEntity | HttpError> {
@@ -19,6 +25,42 @@ export class NotesAdapter {
 		return handleApiRequest(() =>
       axiosInstance.post<NoteResponse>("/notes", body)
         .then(response => NoteMapper.noteResponseToEntity(response.data))
+    );
+  }
+
+  /**
+   * 
+   * @param lastSync ISOString
+   * @returns 
+   */
+  static async getDeltaNotes(lastSync?: string | null): Promise<GetDeltaNotesValueObject | HttpError> {
+
+    const params = lastSync 
+      ? { "last_sync": lastSync } : {};
+
+		return handleApiRequest(() =>
+      axiosInstance.get<GetDeltaNotesResponse>("/user/notes/delta", { params })
+        .then(response => 
+          NoteMapper.getDeltaNotesResponseToValueObject(response.data)
+        )
+    );
+  }
+
+  /**
+   * 
+   * @param lastSync ISOString
+   * @returns 
+   */
+  static async getNotesForSync(lastSync: string): Promise<SyncNoteEntity[] | HttpError> {
+
+    const params = lastSync 
+      ? { "last_sync": lastSync } : {};
+
+		return handleApiRequest(() =>
+      axiosInstance.get<GetNotesForSyncResponse>("/user/notes/sync", { params })
+        .then(response => 
+          response.data.notes.map(NoteMapper.syncNoteResponseToEntity)
+        )
     );
   }
 
@@ -50,11 +92,23 @@ export class NotesAdapter {
     );
   }
 
-  static async getNoteById(noteId: number): Promise<NoteEntity | HttpError> {
+  static async getNotesPreview(input?: GetNotesInput): Promise<PaginatedNotesPreviewValueObject | HttpError> {
+
+    const params = input ? NoteMapper.getNotesInputToDTO(input) : {};
 
 		return handleApiRequest(() =>
-      axiosInstance.get<NoteResponse>(`/note/${noteId}`)
-        .then(response => NoteMapper.noteResponseToEntity(response.data))
+      axiosInstance.get<GetNotesPreviewReponse>("user/notes/preview", { params })
+        .then(response => NoteMapper.getNotesPreviewResponseToValueObject(response.data))
+    );
+  }
+
+  static async getNoteById(noteId: number) {
+
+		return handleApiRequest(
+      () =>
+        axiosInstance.get<NoteResponse>(`/note/${noteId}`)
+          .then(response => NoteMapper.noteResponseToEntity(response.data)),
+      (err) => GetNoteErrorMapper.httpErrorToNoteError(err, noteId)
     );
   }
 

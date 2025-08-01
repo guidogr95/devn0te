@@ -6,19 +6,28 @@ import * as getNoteByIdReducers from "../reducer/notes/get-note-by-id.reducers";
 import * as deleteNoteByIdReducers from "../reducer/notes/delete-note-by-id.reducers";
 import * as getNotesListReducers from "../reducer/notes/get-notes-list.reducers";
 import * as shareNoteReducers from "../reducer/notes/share-note.reducers";
+import * as deltaSyncNotesReducers from "../reducer/notes/delta-sync-notes.reducers";
+import * as queryLocalNotesReducers from "../reducer/notes/query-local-notes.reducers";
 import { DomainErrorData } from "devnote/modules/auth/core/http-error";
 import { PaginatedNotesValueObject } from "../../core/get-notes-response";
 import { GetNotesSortOptions } from "../../core/get-notes-sort-options";
+import { NoteErrorValueObject } from "../../core/value-object/note-error-value-object";
+import { LocalNoteEntity } from "../../core/entity/local-note-entity";
+import { PaginatedNotesPreviewValueObject } from "../../core/get-notes-preview-response";
 
 export type NotesState = {
-  notesList: PaginatedNotesValueObject | null
+  notesList: PaginatedNotesPreviewValueObject | null
 	isLoadingNotes: boolean
 	isLoadingNotesNextPage: boolean
 	isLoadingActiveNote: boolean
   notesError?: string
   updateNoteError?: string
-  activeNoteError?: string
+
+  // active note
+  activeNoteError?: NoteErrorValueObject | null
   activeNote: NoteEntity | null
+  activeNoteId: number | null,
+
   isNoteChangesUnsavedMap: Record<number, boolean>
   isNoteUpdatingMap: Record<number, boolean>
   isNoteDeletingMap: Record<number, boolean>
@@ -30,6 +39,16 @@ export type NotesState = {
   sharingNoteError?: DomainErrorData;
   notesNextPageError?: string;
   noteListSortOptions: GetNotesSortOptions
+
+  //delta sync
+  isLoadingDeltaSync: boolean
+  deltaSyncError?: string
+
+  // local notes query
+  isLoadingLocalQuery: boolean
+  localQueryError: string | null
+  localQueryResults: LocalNoteEntity[]
+
 }
 
 const initialState: NotesState = {
@@ -41,7 +60,10 @@ const initialState: NotesState = {
   creatingNoteError: undefined,
   deletingNoteError: undefined,
   notesError: undefined,
+  //active note
   activeNote: null,
+  activeNoteId: null,
+
   isNoteChangesUnsavedMap: {},
   isNoteUpdatingMap: {},
   isNoteDeletingMap: {},
@@ -52,7 +74,16 @@ const initialState: NotesState = {
   noteListSortOptions: {
     value: "updatedAt",
     direction: "desc"
-  }
+  },
+
+  //delta sync
+  isLoadingDeltaSync: false,
+  deltaSyncError: undefined,
+
+  // local notes query
+  isLoadingLocalQuery: false,
+  localQueryError: null,
+  localQueryResults: [],
 };
 
 const notesSlice = createSlice({
@@ -71,15 +102,19 @@ const notesSlice = createSlice({
     ...getNoteByIdReducers,
     // get note list
     ...getNotesListReducers,
-    setNotesList(state, action: PayloadAction<PaginatedNotesValueObject>) {
+    // delta sync
+    ...deltaSyncNotesReducers,
+    // query local notes
+    ...queryLocalNotesReducers,
+    setNotesList(state, action: PayloadAction<PaginatedNotesPreviewValueObject>) {
       state.notesList = action.payload;
     },
-    setActiveNote(state, action: PayloadAction<NoteEntity>) {
-      state.activeNote = action.payload;
+    setActiveNoteId(state, action: PayloadAction<number | null>) {
+      state.activeNoteId = action.payload;
     },
-    updateNoteListItem(state, action: PayloadAction<{ index: number, note: NoteEntity }>) {
-      if (!state.notesList) return;
-      state.notesList.data[action.payload.index] = action.payload.note;
+    setActiveNote(state, action: PayloadAction<NoteEntity | null>) {
+      state.activeNote = action.payload;
+      state.activeNoteError = null;
     },
   }
 });
@@ -116,11 +151,23 @@ export const {
   getNoteByIdFailure,
   getNoteByIdFinalized,
   setActiveNote,
+  setActiveNoteId,
   setNotesList,
-  updateNoteListItem,
   setUpdateNoteAbortController,
   cancelUpdateNoteAbortController,
-  registerIsChangesUnsaved
+  registerIsChangesUnsaved,
+  //delta sync
+  deltaSyncNotesRequest,
+  deltaSyncNotesSuccess,
+  deltaSyncNotesFailure,
+  deltaSyncNotesFinalized,
+  // local query
+  queryLocalNotesRequest,
+  queryLocalNotesSuccess,
+  queryLocalNotesFailure,
+  queryLocalNotesFinalized,
+  queryLocalNotesCleanup,
+  
 } = notesSlice.actions;
 
 export const notesReducer = notesSlice.reducer;

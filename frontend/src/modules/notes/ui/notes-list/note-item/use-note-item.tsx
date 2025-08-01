@@ -1,8 +1,8 @@
 import { useParams } from "@tanstack/react-router";
-import { NoteEntity } from "devnote/modules/notes/core/entity/note.entity";
+import { NotePreviewEntity } from "devnote/modules/notes/core/entity/note-preview.entity";
 import { useNotesActions } from "devnote/modules/notes/hooks/use-notes-actions";
 
-export function useNoteItem(note: NoteEntity) {
+export function useNoteItem(note: NotePreviewEntity) {
 
   const id = useParams({
     select: (params) => params?.id,
@@ -11,14 +11,14 @@ export function useNoteItem(note: NoteEntity) {
 
   const isActive = note.id.toString() === id;
 
-	const { handleSetActiveNote } = useNotesActions();
+	const { handleSetActiveNoteId } = useNotesActions();
 
-	const handleSetNote = () => {
-		handleSetActiveNote(note);
+	const handleSetNoteId = () => {
+		handleSetActiveNoteId(note.id);
 	};
 
 	return {
 		isActive,
-		handleSetNote
+		handleSetNoteId
 	};
 };

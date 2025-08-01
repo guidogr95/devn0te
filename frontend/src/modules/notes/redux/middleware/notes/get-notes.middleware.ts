@@ -10,7 +10,7 @@ export const getNotesFlowMiddleware: Middleware = (api) => next => async action 
   if (notesActions.getNotesListRequest.match(action)) {
     
 
-    const response = await NotesAdapter.getNotes({
+    const response = await NotesAdapter.getNotesPreview({
       sortBy: action.payload.sortOptions.value,
       sortDirection: action.payload.sortOptions.direction
     });
@@ -33,7 +33,7 @@ export const getNotesListNextPageFlowMiddleware: Middleware<{}, RootState> = (ap
     const { notesList, noteListSortOptions } = notes;
     if (!notesList) return;
 
-    const response = await NotesAdapter.getNotes({
+    const response = await NotesAdapter.getNotesPreview({
       page: notesList.pagination.currentPage + 1,
       sortBy: noteListSortOptions.value,
       sortDirection: noteListSortOptions.direction

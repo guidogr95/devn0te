@@ -3,6 +3,7 @@ import {
   createNoteFailure,
   createNoteFinalized,
   createNoteSuccess,
+  deltaSyncNotesRequest,
   getNotesListRequest,
   notesActions,
   setActiveNote,
@@ -38,6 +39,13 @@ export const createNoteSuccessMiddleware: Middleware<{}, RootState> = (api) => n
     }));
 
     api.dispatch(setActiveNote(action.payload));
+
+    const { auth } = api.getState();
+    const { user } = auth;
+
+    if (user) {
+      api.dispatch(deltaSyncNotesRequest(user.id));
+    }
 
   }
 };

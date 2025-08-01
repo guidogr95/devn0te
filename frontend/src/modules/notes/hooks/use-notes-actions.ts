@@ -7,8 +7,11 @@ import {
   getNoteByIdRequest,
   getNotesListNextPageRequest,
   getNotesListRequest,
+  queryLocalNotesCleanup,
+  queryLocalNotesRequest,
   registerIsChangesUnsaved,
   setActiveNote,
+  setActiveNoteId,
   shareNoteRequest,
   updateNoteByIdRequest
 } from "../redux/slice/notes.slice";
@@ -37,10 +40,13 @@ export const useNotesActions = () => {
     dispatch(setActiveNote(note));
   };
 
+  const handleSetActiveNoteId = (noteId: number) => {
+    dispatch(setActiveNoteId(noteId));
+  };
+
   const handleUpdateNoteById = (input: UpdateNoteInput) => {
     dispatch(updateNoteByIdRequest(input));
   };
-
 
   const handleDeleteNoteById = (id: number) => {
     dispatch(deleteNoteByIdRequest(id));
@@ -62,6 +68,14 @@ export const useNotesActions = () => {
     dispatch(shareNoteRequest({ noteId, input }));
   };
 
+  const handleTriggerLocalQuery = (searchTerm: string) => {
+    dispatch(queryLocalNotesRequest(searchTerm));
+  };
+
+  const handleLocalQueryCleanup = () => {
+    dispatch(queryLocalNotesCleanup());
+  };
+
   return {
     handleGetNotesList,
     handleSetActiveNote,
@@ -72,6 +86,9 @@ export const useNotesActions = () => {
     handleCreateNote,
     handleDeleteNoteById,
     handleShareNote,
-    handleGetNotesListNextPage
+    handleGetNotesListNextPage,
+    handleTriggerLocalQuery,
+    handleSetActiveNoteId,
+    handleLocalQueryCleanup
   };
 };

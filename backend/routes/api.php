@@ -23,6 +23,9 @@ Route::prefix('v1')->group(function() {
 		Route::apiResource('notes', NoteController::class);
 		Route::get('note/{id}', [NoteController::class, 'getUserNoteById']);
 		Route::post('notes/{id}/share', [NoteController::class, 'share']);
+		Route::get('user/notes/sync', [NoteController::class, 'getUserNotesForSync']);
+		Route::get('user/notes/delta', [NoteController::class, 'getDeltaNotes']);
+		Route::get('user/notes/preview', [NoteController::class, 'getUserNotesPreview']);
 	});
 
 	Route::get('shared-notes/{sharingUrl}', [NoteController::class, 'getSharedNote']);
