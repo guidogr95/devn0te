@@ -8,7 +8,6 @@ const Toaster = ({ ...props }: ToasterProps) => {
 
   const data = useSonner();
 
-  console.log("data:",data);
 
   return (
     <Sonner

@@ -20,6 +20,35 @@ module.exports = {
       },
     },
     extend: {
+      typography: (theme) => ({
+        dark: {
+          css: {
+            color: theme("colors.gray.300"),
+            a: { color: theme("colors.blue.400") },
+            strong: { color: theme("colors.gray.100") },
+            "ul > li::before": { backgroundColor: theme("colors.gray.500") },
+            hr: { borderColor: theme("colors.gray.700") },
+            blockquote: {
+              color: theme("colors.gray.100"),
+              borderLeftColor: theme("colors.gray.700"),
+            },
+            h1: { color: theme("colors.gray.100") },
+            h2: { color: theme("colors.gray.100") },
+            h3: { color: theme("colors.gray.100") },
+            code: { color: theme("colors.pink.400") },
+            "a code": { color: theme("colors.pink.400") },
+            pre: {
+              backgroundColor: theme("colors.gray.800"),
+              color: theme("colors.gray.100"),
+            },
+            thead: {
+              color: theme("colors.gray.100"),
+              borderBottomColor: theme("colors.gray.700"),
+            },
+            "tbody tr": { borderBottomColor: theme("colors.gray.800") },
+          },
+        },
+      }),
       colors: {
         "primary": "var(--bg-primary)",
         "bg-primary": "var(--bg-primary)",
@@ -95,6 +124,7 @@ module.exports = {
     },
   },
   plugins: [
+    require('@tailwindcss/typography'),
     require("tailwindcss-animate"),
     plugin(function({ addUtilities, theme, e }) {
       const lineClamp = theme("lineClamp") || {};

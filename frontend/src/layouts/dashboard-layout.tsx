@@ -1,20 +1,8 @@
 "use client";
-
 import { PropsWithChildren, useState } from "react";
-import { File, FolderOpen } from "lucide-react";
-import { Input, ScrollArea } from "devnote/modules";
-import { EditorFileList } from "devnote/modules/notes/ui/editor-file-list";
+import { Input } from "devnote/modules";
+import { FileExplorer } from "devnote/modules/notes/ui/file-explorer";
 
-// Mock data for the file explorer
-const mockFiles = [
-  { name: "README.md", type: "file" },
-  { name: "daily-notes.md", type: "file" },
-  { name: "project-ideas.md", type: "file" },
-  { name: "meeting-notes.md", type: "file" },
-  { name: "todo.md", type: "file" },
-  { name: "vim-shortcuts.md", type: "file" },
-  { name: "learning-notes.md", type: "file" },
-];
 
 // Mock editor content
 const mockEditorContent = `# Welcome to VimNotes
@@ -54,44 +42,15 @@ export function DashboardLayout({ children }: Props) {
   return (
     <div className="h-screen bg-gray-900 text-green-400 font-mono flex flex-col">
       {/* Main content area */}
-      <div className="flex-1 flex">
+      <div className="flex-1 flex overflow-hidden">
         {/* Editor area */}
-        <div className="flex-1 flex">
+        <div className="flex-1 flex relative">
 
           <div className="flex-1 bg-gray-900 py-4 overflow-auto">
 						{children}
           </div>
         </div>
-
-
-
-        {/* File explorer */}
-        <div className="w-64 bg-gray-800 border-l border-gray-700">
-          <div className="p-3 border-b border-gray-700">
-            <div className="flex items-center gap-2 text-gray-400">
-              <FolderOpen className="w-4 h-4" />
-              <span className="text-sm font-semibold">Notes</span>
-            </div>
-          </div>
-
-          <EditorFileList />
-          <ScrollArea className="h-full">
-            <div className="p-2">
-              {mockFiles.map((file) => (
-                <div
-                  key={file.name}
-                  className={`flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:bg-gray-700 transition-colors ${
-                    selectedFile === file.name ? "bg-gray-700 text-green-300" : "text-gray-400"
-                  }`}
-                  onClick={() => setSelectedFile(file.name)}
-                >
-                  <File className="w-4 h-4" />
-                  <span className="text-sm">{file.name}</span>
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
-        </div>
+        <FileExplorer />
       </div>
 
       {/* Status bar */}

@@ -1,4 +1,3 @@
-import { useCurrentEditor } from "@tiptap/react";
 import { SaveNoteArgs } from "devnote/modules/notes/hooks/types";
 import { selectActiveNote } from "devnote/modules/notes/redux/selector/notes-selectors";
 import { useEffect, useState } from "react";
@@ -11,12 +10,10 @@ type Props = {
 
 export function useNoteEditorTitle({
 	titleRef,
-	handleEditorChange
 }: Props) {
 
 	const activeNote = useSelector(selectActiveNote);
   const [inputValue, setInputValue] = useState(activeNote?.title || "");
-  const { editor } = useCurrentEditor();
 
 	useEffect(() => {
     if (!activeNote?.id) return;
@@ -28,12 +25,6 @@ export function useNoteEditorTitle({
     handleUpdateInputValue(e.target.value);
     
     if (!activeNote) return;
-    
-    handleEditorChange({
-      id: activeNote.id,
-      title: e.target.value,
-      content: editor?.getHTML()
-    });
   };
 
   const handleUpdateInputValue = (value: string) => {

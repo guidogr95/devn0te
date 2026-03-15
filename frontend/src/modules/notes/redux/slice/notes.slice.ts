@@ -9,7 +9,6 @@ import * as shareNoteReducers from "../reducer/notes/share-note.reducers";
 import * as deltaSyncNotesReducers from "../reducer/notes/delta-sync-notes.reducers";
 import * as queryLocalNotesReducers from "../reducer/notes/query-local-notes.reducers";
 import { DomainErrorData } from "devnote/modules/auth/core/http-error";
-import { PaginatedNotesValueObject } from "../../core/get-notes-response";
 import { GetNotesSortOptions } from "../../core/get-notes-sort-options";
 import { NoteErrorValueObject } from "../../core/value-object/note-error-value-object";
 import { LocalNoteEntity } from "../../core/entity/local-note-entity";
@@ -43,11 +42,17 @@ export type NotesState = {
   //delta sync
   isLoadingDeltaSync: boolean
   deltaSyncError?: string
+  localNotesList: LocalNoteEntity[]
+  isLoadingLocalNoteList: boolean
+  localNotesError: string | null
 
   // local notes query
+  localQuerySearchTerm: string
   isLoadingLocalQuery: boolean
   localQueryError: string | null
   localQueryResults: LocalNoteEntity[]
+  selectedIndex: number
+
 
 }
 
@@ -79,11 +84,17 @@ const initialState: NotesState = {
   //delta sync
   isLoadingDeltaSync: false,
   deltaSyncError: undefined,
+  localNotesList: [],
+  isLoadingLocalNoteList: false,
+  localNotesError: null,
+
 
   // local notes query
+  localQuerySearchTerm: "",
   isLoadingLocalQuery: false,
   localQueryError: null,
   localQueryResults: [],
+  selectedIndex: 0
 };
 
 const notesSlice = createSlice({
@@ -161,12 +172,19 @@ export const {
   deltaSyncNotesSuccess,
   deltaSyncNotesFailure,
   deltaSyncNotesFinalized,
+  getLocalNotesRequest,
+  getLocalNotesSuccess,
+  getLocalNotesFailure,
+  getLocalNotesFinalized,
   // local query
   queryLocalNotesRequest,
   queryLocalNotesSuccess,
   queryLocalNotesFailure,
   queryLocalNotesFinalized,
   queryLocalNotesCleanup,
+  incrementSelectedIndex,
+  decrementSelectedIndex,
+  setLocalQuerySearchTerm
   
 } = notesSlice.actions;
 

@@ -16,6 +16,7 @@ import { GetDeltaNotesResponse } from "../../core/get-delta-notes-response";
 import { GetDeltaNotesValueObject } from "../../core/get-delta-notes-value-object";
 import { GetNoteErrorMapper } from "../mappers/get-note-error.mapper";
 import { GetNotesPreviewReponse, PaginatedNotesPreviewValueObject } from "../../core/get-notes-preview-response";
+import { GetNoteLinksResponse, NoteLinkEntity } from "../../core/get-note-links-response";
 
 export class NotesAdapter {
   static async createNote(input: CreateNoteInput): Promise<NoteEntity | HttpError> {
@@ -72,9 +73,9 @@ export class NotesAdapter {
     );
   }
 
-  static async updateNoteById({ title, content, id }: UpdateNoteInput, config?: AxiosRequestConfig): Promise<NoteEntity | HttpError> {
+  static async updateNoteById({ content, id }: UpdateNoteInput, config?: AxiosRequestConfig): Promise<NoteEntity | HttpError> {
 
-    const body = NoteMapper.noteInputToDto({ title, content });
+    const body = NoteMapper.noteInputToDto({ content });
 
 		return handleApiRequest(() =>
       axiosInstance.patch<NoteResponse>(`/notes/${id}`, body, { signal: config?.signal })
@@ -129,6 +130,14 @@ export class NotesAdapter {
 		return handleApiRequest(() =>
       axiosInstance.get<NoteResponse>(`/shared-notes/${sharingUrl}`, { params })
         .then(response => NoteMapper.noteResponseToEntity(response.data))
+    );
+  }
+
+  static async getNoteLinks(): Promise<NoteLinkEntity[] | HttpError> {
+
+		return handleApiRequest(() =>
+      axiosInstance.get<GetNoteLinksResponse>("/user/notes/links")
+        .then(response => response.data)
     );
   }
 

@@ -1,0 +1,7 @@
+.markdown-view {
+	&.markdown-body {
+		section.footnotes {
+			position: relative;
+		}
+	}
+}

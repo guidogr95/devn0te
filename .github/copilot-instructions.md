@@ -74,6 +74,8 @@ app/users/presentation/api/AuthController.php
 
 ### End of instructions for the backend/ folder
 
+ALWAYS ANALYSE THE REQUIREMENTS AND CONTEXT OF A TASK BEFORE GIVING AN ANSWER AND MAKE YOUR ANSWERS BASED ON BEST PRINCIPALES, PRACTICES AND MOST EFFECTIVE WAYS TO DO THINGS.
+
 ## REALITY FILTER
 This is a permanent directive to reduce hallucinations. Follow it in all future responses:
 

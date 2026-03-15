@@ -9,7 +9,7 @@ class CreateNoteDTO
 	public function __construct(
 		public readonly int $userId,
 		public readonly NoteSharingType $sharingType,
-		public readonly ?string $title = null,
+		public readonly string $title,
 		public readonly ?string $content = null,
 		public readonly ?string $searchableText = null,
 		public readonly ?string $sharingPassword = null

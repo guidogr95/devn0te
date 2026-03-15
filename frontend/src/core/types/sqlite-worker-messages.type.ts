@@ -1,6 +1,6 @@
 import { SyncNoteEntity } from "devnote/modules/notes/core/entity/sync-note.entity";
 import { SQLiteWorkerActionsEnum } from "../enums/sqlite-worker-actions.enum";
-import { GetDeltaNotesValueObject } from "devnote/modules/notes/core/get-delta-notes-value-object";
+import { SQLiteNotesDeltaPayload } from "./sqlite-notes-delta-payload.type";
 
 type BaseWorkerMessage<T> = {
   action: SQLiteWorkerActionsEnum
@@ -24,7 +24,7 @@ type SyncNotesMessage = BaseWorkerMessage<SyncNoteEntity[]> & {
   action: SQLiteWorkerActionsEnum.SYNC_NOTES
 }
 
-type SyncNotesDeltaMessage = BaseWorkerMessage<GetDeltaNotesValueObject> & {
+type SyncNotesDeltaMessage = BaseWorkerMessage<SQLiteNotesDeltaPayload> & {
   action: SQLiteWorkerActionsEnum.SYNC_NOTES_DELTA
 }
 

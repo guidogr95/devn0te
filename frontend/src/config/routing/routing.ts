@@ -8,6 +8,13 @@ export const Routes = {
 					getWithParams: (params: { id: string | number }) => `/dashboard/notes/${params.id}`,
 					$id: "/dashboard/notes/$id"
 				}
+			},
+			nodes: {
+				path: "/dashboard/nodes",
+				params: {
+					getWithParams: (params: { id: string | number }) => `/dashboard/nodes/${params.id}`,
+					$id: "/dashboard/nodes/$id"
+				}
 			}
 		}
 	},

@@ -1,6 +1,5 @@
 import { NoteEditorEmpty } from "./note-editor-empty";
 import { AppLoader } from "devnote/modules/shared/ui/app-loader/app-loader";
-import { NoteEditor } from "./note-editor/note-editor";
 import { useNoteEditorWrapper } from "./use-note-editor-wrapper";
 import { DocumentHeader } from "./document-header/document-header";
 import { GetNoteErrorTypesEnum } from "../../errors/get-note-error-types.enum";

@@ -4,6 +4,7 @@ import {
   cancelUpdateNoteAbortController,
   createNoteRequest,
   deleteNoteByIdRequest,
+  getLocalNotesRequest,
   getNoteByIdRequest,
   getNotesListNextPageRequest,
   getNotesListRequest,
@@ -12,6 +13,7 @@ import {
   registerIsChangesUnsaved,
   setActiveNote,
   setActiveNoteId,
+  setLocalQuerySearchTerm,
   shareNoteRequest,
   updateNoteByIdRequest
 } from "../redux/slice/notes.slice";
@@ -76,6 +78,14 @@ export const useNotesActions = () => {
     dispatch(queryLocalNotesCleanup());
   };
 
+  const handleSetLocalQuerySearchTerm = (value: string) => {
+    dispatch(setLocalQuerySearchTerm(value));
+  };
+
+  const handleGetLocalNotesList = () => {
+    dispatch(getLocalNotesRequest());
+  };
+
   return {
     handleGetNotesList,
     handleSetActiveNote,
@@ -89,6 +99,8 @@ export const useNotesActions = () => {
     handleGetNotesListNextPage,
     handleTriggerLocalQuery,
     handleSetActiveNoteId,
-    handleLocalQueryCleanup
+    handleLocalQueryCleanup,
+    handleSetLocalQuerySearchTerm,
+    handleGetLocalNotesList
   };
 };

@@ -17,14 +17,17 @@ import { cancelUpdateNoteByIdMiddleware, updateNoteByIdFlowMiddleware, updateNot
 // Shared note middleware
 import { getNoteBySharingUrlFlowMiddleware } from "devnote/modules/notes/redux/middleware/shared-note/get-note-by-sharing-url.middleware";
 import { setActiveNoteIdMiddleware, setActiveNoteMiddleware } from "devnote/modules/notes/redux/middleware/notes/notes-list.middleware";
-import { deltaSyncNotesFlowMiddleware } from "devnote/modules/notes/redux/middleware/notes/delta-sync-notes.middleware";
-import { queryLocalNotesFlowMiddleware } from "devnote/modules/notes/redux/middleware/notes/query-local-notes.middleware";
+import { deltaSyncNotesFlowMiddleware, deltaSyncNotesSuccessMiddleware } from "devnote/modules/notes/redux/middleware/notes/delta-sync-notes.middleware";
+import { getLocalNotesListFlowMiddleware, queryLocalNotesFlowMiddleware } from "devnote/modules/notes/redux/middleware/notes/query-local-notes.middleware";
+import { actionDialogReducer } from "devnote/modules/shared/redux/slice/action-dialog.slice";
+import { toggleCloseMiddleware, toggleOpenMiddleware } from "devnote/modules/shared/redux/middleware/action-dialog.middleware";
 
 const rootReducer = combineReducers({
   auth: authReducer,
   notes: notesReducer,
   sharedNote: sharedNoteReducer,
-  toast: toastReducer
+  toast: toastReducer,
+  actionDialog: actionDialogReducer
 });
 
 export const store = configureStore({
@@ -73,8 +76,13 @@ export const store = configureStore({
       getNoteBySharingUrlFlowMiddleware,
       // Delta Sync notes middleware,
       deltaSyncNotesFlowMiddleware,
+      deltaSyncNotesSuccessMiddleware,
       // local notes query
-      queryLocalNotesFlowMiddleware
+      queryLocalNotesFlowMiddleware,
+      getLocalNotesListFlowMiddleware,
+      // action dialog,
+      toggleCloseMiddleware,
+      toggleOpenMiddleware
     ),
 });
 

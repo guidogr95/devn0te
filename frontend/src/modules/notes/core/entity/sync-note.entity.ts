@@ -3,5 +3,5 @@ export type SyncNoteEntity = {
 	title: string
 	userId: number
 	updatedAt: string
-	searchableText: string
+	content: string
 }

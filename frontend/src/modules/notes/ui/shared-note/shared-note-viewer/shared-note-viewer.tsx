@@ -1,5 +1,5 @@
 import { NoteEntity } from "devnote/modules/notes/core/entity/note.entity";
-import { Avatar, AvatarFallback, AvatarImage, Button, Card, NoteViewer } from "devnote/modules/shared";
+import { Avatar, AvatarFallback, AvatarImage, Button, Card } from "devnote/modules/shared";
 import { ClipboardCopy } from "lucide-react";
 
 type Props = {
@@ -42,7 +42,7 @@ export default function SharedNoteViewer({
         </header>
 
         <Card className="p-6 bg-gray-800 border-gray-700 shadow-lg">
-          <NoteViewer content={note.content} />
+          {/* <NoteViewer content={note.content} /> */}
           {/* <div className="prose prose-invert max-w-none">
           </div> */}
         </Card>

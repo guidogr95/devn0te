@@ -1,4 +1,4 @@
-FROM node:20-alpine
+FROM node:20.19.0-alpine
 WORKDIR /app/frontend
 
 ENV NODE_OPTIONS=--max_old_space_size=8192

@@ -1,5 +1,5 @@
 import { NoteEditorTitle } from "./note-editor-title";
-import { NoteEditorMenuBar } from "./note-editor-menu-bar";
+// import { NoteEditorMenuBar } from "./note-editor-menu-bar";
 import { SaveNoteArgs } from "devnote/modules/notes/hooks/types";
 
 type Props = {
@@ -17,7 +17,7 @@ export const NoteEditorHeader = ({
       <NoteEditorTitle
         titleRef={titleRef}
         handleEditorChange={handleEditorChange}/>
-      <NoteEditorMenuBar/>
+      {/* <NoteEditorMenuBar/> */}
     </div>
   );
 };

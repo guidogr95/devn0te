@@ -18,6 +18,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Symfony\Component\HttpFoundation\Response;
 use App\Http\Controllers\Controller;
+use App\Notes\Application\Services\NoteLinkService;
 use App\Notes\Domain\ValueObjects\NotePreview;
 use DateTime;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -25,14 +26,16 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 class NoteController extends Controller
 {
 	protected NoteApplicationService $noteAppService;
+	protected NoteLinkService $noteLinkService;
 	protected NoteContentStripper $noteContentStripper;
 
 	public function __construct(
 		NoteApplicationService $noteAppService,
+		NoteLinkService $noteLinkService,
 		NoteContentStripper $noteContentStripper,
-	)
-	{
+	) {
 		$this->noteAppService = $noteAppService;
+		$this->noteLinkService = $noteLinkService;
 		$this->noteContentStripper = $noteContentStripper;
 	}
 
@@ -52,12 +55,10 @@ class NoteController extends Controller
 			$response = new PaginatedResponse($data);
 
 			return response()->json($response->toArray(), Response::HTTP_OK);
-
 		} catch (\Exception $e) {
 
 			Log::error("Failed to retrieve notes for user: {$e->getMessage()}");
 			return response()->json(['error' => 'Failed to retrieve notes.'], Response::HTTP_INTERNAL_SERVER_ERROR);
-
 		}
 	}
 
@@ -66,17 +67,25 @@ class NoteController extends Controller
 		try {
 
 			$validated = $request->validate([
-				'title' => 'nullable|string|max:255',
+				'title' => [
+					'required',
+					'string',
+					'max:50',
+					'regex:/^[a-zA-Z0-9_-]+$/',
+					'not_regex:/^-/',
+					'not_regex:/-$/',
+					'not_regex:/--/',
+				],
 				'content' => 'nullable|string'
 			]);
 
 			$userId = $this->getAuthenticatedUserId();
 
 			$createNoteDTO = new CreateNoteDTO(
-				title: $validated['title'] ?? null,
+				title: $validated['title'],
 				content: $validated['content'] ?? null,
 				searchableText: $validated['content'] ?? null
-					? $this->noteContentStripper->stripHtmlToText($validated['content'])
+					? $this->noteContentStripper->stripMarkdownToText($validated['content'])
 					: null,
 				userId: $userId,
 				sharingType: NoteSharingType::PRIVATE,
@@ -84,12 +93,30 @@ class NoteController extends Controller
 
 			$note = $this->noteAppService->createNote($createNoteDTO);
 			return response()->json($note, Response::HTTP_CREATED);
+		} catch (ValidationException $e) {
+			$errors = $e->validator->errors();
+			Log::warning("Validation failed for note creation: " . json_encode($errors->all()));
 
+			return response()->json([
+				'error' => 'Validation failed.',
+				'errors' => $errors->all(),
+				'details' => $errors->toArray()
+			], Response::HTTP_UNPROCESSABLE_ENTITY);
+		} catch (\Illuminate\Database\QueryException $e) {
+			// Check for unique constraint violation (Postgres: 23505)
+			if ($e->getCode() === '23505') {
+				Log::warning("Duplicate note title: {$validated['title']}");
+				return response()->json([
+					'error' => 'A note with this title already exists.',
+					'code' => 'NOTE_TITLE_DUPLICATE'
+				], Response::HTTP_CONFLICT);
+			}
+			Log::error("Database error on note creation: {$e->getMessage()}");
+			return response()->json(['error' => 'Database error.'], Response::HTTP_INTERNAL_SERVER_ERROR);
 		} catch (\Exception $e) {
 
 			Log::error("Failed to create note: {$e->getMessage()}");
-			return response()->json(['error' => 'Failed to create note.'], Response::HTTP_INTERNAL_SERVER_ERROR);
-
+			return response()->json(['error' => "{$e->getMessage()}"], Response::HTTP_INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -99,30 +126,45 @@ class NoteController extends Controller
 
 			$userId = $this->getAuthenticatedUserId();
 
+			$request->merge([
+				'title' => $request->input('title') === '' ? null : $request->input('title')
+			]);
+
 			$validated = $request->validate([
-				'title' => 'nullable|string|max:255',
+				'title' => [
+					'nullable',
+					'string',
+					'max:50',
+					'regex:/^[a-zA-Z0-9_-]+$/',
+					'not_regex:/^-/',
+					'not_regex:/-$/',
+					'not_regex:/--/',
+				],
 				'content' => 'nullable|string'
 			]);
 
 			$updateNoteDTO = new UpdateNoteDTO(
-				title: $validated['title'] ?? null,
+				title: $validated['title'],
 				content: $validated['content'] ?? null,
-				searchableText: $validated['content'] 
-					? $this->noteContentStripper->stripHtmlToText($validated['content'])
-					: null,
-				preview: $validated['content'] 
-					? (new NotePreview($validated['content']))->getValue()
-					: null
+				searchableText: null,
+				preview: ""
 			);
 
 			$note = $this->noteAppService->updateNote($id, $userId, $updateNoteDTO);
 			return response()->json($note, Response::HTTP_OK);
+		} catch (ValidationException $e) {
+			$errors = $e->validator->errors();
+			Log::warning("Validation failed for note update: " . json_encode($errors->all()));
 
+			return response()->json([
+				'error' => 'Validation failed.',
+				'errors' => $errors->all(),
+				'details' => $errors->toArray()
+			], Response::HTTP_UNPROCESSABLE_ENTITY);
 		} catch (\Exception $e) {
 
 			Log::error("Failed to update note $id: {$e->getMessage()}");
 			return response()->json(['error' => 'Failed to update note.'], Response::HTTP_INTERNAL_SERVER_ERROR);
-
 		}
 	}
 
@@ -135,12 +177,40 @@ class NoteController extends Controller
 			$note = $this->noteAppService->deleteNote($id, $userId);
 
 			return response()->json($note, Response::HTTP_OK);
-
 		} catch (\Exception $e) {
 
 			Log::error("Failed to delete note $id: {$e->getMessage()}");
 			return response()->json(['error' => 'Failed to delete note.'], Response::HTTP_INTERNAL_SERVER_ERROR);
+		}
+	}
 
+	public function getNoteTitles(Request $request): JsonResponse
+	{
+		try {
+
+			$validated = $request->validate([
+				'page_size' => 'integer|min:1|max:100',
+				'exclude_id' => 'nullable|integer'
+			]);
+
+			$pageSize = $validated['page_size'] ?? 10;
+			$excludeId = $validated['exclude_id'] ?? null;
+			$filter = $request->input('q', '');
+			$userId = $this->getAuthenticatedUserId();
+
+			$data = $this->noteAppService->getNoteTitlesPaginated(
+				$userId,
+				$filter,
+				$pageSize,
+				$excludeId
+			);
+			$response = new PaginatedResponse($data);
+
+			return response()->json($response->toArray(), Response::HTTP_OK);
+		} catch (\Exception $e) {
+
+			Log::error("Failed to retrieve note titles for user: {$e->getMessage()}");
+			return response()->json(['error' => 'Failed to retrieve note titles.'], Response::HTTP_INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -160,12 +230,10 @@ class NoteController extends Controller
 			$response = new PaginatedResponse($data);
 
 			return response()->json($response->toArray(), Response::HTTP_OK);
-
 		} catch (\Exception $e) {
 
 			Log::error("Failed to retrieve notes for user: {$e->getMessage()}");
 			return response()->json(['error' => 'Failed to retrieve notes.'], Response::HTTP_INTERNAL_SERVER_ERROR);
-
 		}
 	}
 
@@ -180,14 +248,12 @@ class NoteController extends Controller
 		} catch (ModelNotFoundException $e) {
 
 			return response()->json([
-            'error' => 'Note not found.'
-        ], Response::HTTP_NOT_FOUND);
-
+				'error' => 'Note not found.'
+			], Response::HTTP_NOT_FOUND);
 		} catch (\Exception $e) {
 
 			Log::error("Failed to retrieve note $id for user: {$e->getMessage()}");
 			return response()->json(['error' => "{$e->getMessage()}"], Response::HTTP_INTERNAL_SERVER_ERROR);
-
 		}
 	}
 
@@ -209,7 +275,6 @@ class NoteController extends Controller
 			$notes = $this->noteAppService->getUserNotesForSync($userId, $lastSync);
 
 			return response()->json(['notes' => $notes]);
-
 		} catch (\Exception $e) {
 			Log::error("Failed to retrieve notes for sync for user_id $userId: {$e->getMessage()}");
 			return response()->json(['error' => 'Failed to retrieve notes for sync.'], Response::HTTP_INTERNAL_SERVER_ERROR);
@@ -231,7 +296,6 @@ class NoteController extends Controller
 			$delta = $this->noteAppService->getDeltaNotesByUser($userId, $since);
 
 			return response()->json($delta);
-
 		} catch (\Exception $e) {
 			Log::error("Failed to retrieve delta notes for sync $userId for user: {$e->getMessage()}");
 			return response()->json(['error' => "Failed to retrieve delta notes for sync. {$e->getMessage()}"], Response::HTTP_INTERNAL_SERVER_ERROR);
@@ -240,7 +304,7 @@ class NoteController extends Controller
 
 	public function share(Request $request, int $id): JsonResponse
 	{
-		
+
 		try {
 
 			$userId = $this->getAuthenticatedUserId();
@@ -257,7 +321,6 @@ class NoteController extends Controller
 
 			$note = $this->noteAppService->shareNote($id, $userId, $shareNoteDTO);
 			return response()->json($note, Response::HTTP_OK);
-
 		} catch (ValidationException $e) {
 
 			$errors = $e->validator->errors();
@@ -267,7 +330,7 @@ class NoteController extends Controller
 				return response()->json([
 					'errors' => $errors->first('sharing_password'),
 					'code' => NoteErrorCode::PROTECTED_PASSWORD_MISSING->value
-				], Response::HTTP_UNPROCESSABLE_ENTITY);	
+				], Response::HTTP_UNPROCESSABLE_ENTITY);
 			}
 
 			return response()->json(['errors' => $errors->all()], Response::HTTP_UNPROCESSABLE_ENTITY);
@@ -275,7 +338,6 @@ class NoteController extends Controller
 
 			Log::error("Failed to share note $id: {$e->getMessage()}");
 			return response()->json(['error' => 'Failed to share note.'], Response::HTTP_INTERNAL_SERVER_ERROR);
-
 		}
 	}
 
@@ -288,22 +350,35 @@ class NoteController extends Controller
 
 			$note = $this->noteAppService->getNoteBySharingUrl($sharingUrl, $validated['sharing_password'] ?? null);
 			return response()->json($note, Response::HTTP_OK);
-
 		} catch (AuthorizationException $e) {
 
 			$errorCode = $e->getCode();
-			
+
 			Log::error("Unauthorized to retrieve shared note for URL $sharingUrl: {$e->getMessage()}");
 			return response()->json([
 				'error' => 'Unauthorized.',
 				'code' => $errorCode
 			], Response::HTTP_UNAUTHORIZED);
-			
 		} catch (\Exception $e) {
-			
+
 			Log::error("Failed to retrieve shared note for URL $sharingUrl: {$e->getMessage()}");
 			return response()->json(['error' => 'Failed to retrieve shared note.'], Response::HTTP_INTERNAL_SERVER_ERROR);
-			
+		}
+	}
+
+	public function findAllLinksForUser(Request $request): JsonResponse
+	{
+
+		try {
+
+			$userId = $this->getAuthenticatedUserId();
+
+			$links = $this->noteLinkService->findAllLinksForUser($userId);
+			return response()->json($links, Response::HTTP_OK);
+		} catch (\Exception $e) {
+
+			Log::error("Failed to get links: {$e->getMessage()}");
+			return response()->json(['error' => "{$e->getMessage()}"], Response::HTTP_INTERNAL_SERVER_ERROR);
 		}
 	}
 }

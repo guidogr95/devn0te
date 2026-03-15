@@ -75,7 +75,9 @@ class AuthController extends Controller
   public function register(Request $request): JsonResponse
   {
 
-    $validated = $request->validate([
+    try {
+
+      $validated = $request->validate([
       'name' => 'required|string|max:255',
       'email' => 'required|string|email|max:255|unique:users',
       'password' => 'required|string|min:6|confirmed'
@@ -93,5 +95,14 @@ class AuthController extends Controller
       'token' => $token,
       'user' => $user
     ], 201);
+
+		} catch (\Exception $e) {
+
+			Log::error("Failed to register: {$e->getMessage()}");
+			return response()->json(['error' => "Failed to register: {$e->getMessage()}"], Response::HTTP_INTERNAL_SERVER_ERROR);
+
+		}
+
+    
   }
 }

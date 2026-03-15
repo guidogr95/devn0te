@@ -11,7 +11,7 @@ export function useNoteEditorWrapper() {
 	const activeNoteError = useSelector(selectActiveNoteError);
 	const isLoadingActiveNote = useSelector(selectIsLoadingActiveNote);
 
-	const { handleGetNoteById } = useNotesActions();
+	const { handleGetNoteById, handleGetLocalNotesList } = useNotesActions();
 	
   const id = useParams({
     select: (params) => params?.id ? parseInt(params.id) : undefined,
@@ -30,6 +30,13 @@ export function useNoteEditorWrapper() {
 			return;
 		}
 	}, [id, activeNoteId]);
+
+	useEffect(() => {
+		setTimeout(() => {
+			handleGetLocalNotesList();
+		}, 500);
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	return {
 		isLoadingActiveNote,

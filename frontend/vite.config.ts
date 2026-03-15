@@ -7,9 +7,9 @@ import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    react(),
     TanStackRouterVite(),
-    wasm()
+    react(),
+    wasm(),
   ],
   server: {
     watch: {
@@ -17,16 +17,29 @@ export default defineConfig({
     },
     headers: {
       "Cross-Origin-Opener-Policy": "same-origin",
-      "Cross-Origin-Embedder-Policy": "require-corp"
+      "Cross-Origin-Embedder-Policy": "require-corp",
     },
   },
   optimizeDeps: {
     esbuildOptions: {
-      target: "es2020"
+      target: "es2020",
     },
-    include: ["github-markdown-css"],
+    include: [
+      "@tanstack/router-plugin/vite",
+      "@tanstack/react-router",
+      "marked",
+    ],
   },
   resolve: {
-    alias: [{ find: "devnote", replacement: path.resolve(__dirname, "src") }]
+    alias: [
+      { find: "devnote", replacement: path.resolve(__dirname, "src") },
+      {
+        find: "@tanstack/router-plugin/vite",
+        replacement: path.resolve(
+          __dirname,
+          "node_modules/@tanstack/router-plugin/dist/esm/vite.js"
+        ),
+      },
+    ],
   },
 });

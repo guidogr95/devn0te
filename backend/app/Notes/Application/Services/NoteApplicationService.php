@@ -7,7 +7,9 @@ use App\Notes\Application\DTOs\CreateNoteDTO;
 use App\Notes\Application\DTOs\ShareNoteDTO;
 use App\Notes\Application\DTOs\UpdateNoteDTO;
 use App\Notes\Application\DTOs\UserNotesSortOptionsDTO;
+use App\Notes\Domain\Events\NoteCreatedEvent;
 use App\Notes\Domain\Events\NoteDeletedEvent;
+use App\Notes\Domain\Events\NoteUpdatedEvent;
 use App\Notes\Infrastructure\Persistence\Note;
 use App\Notes\Domain\Repositories\NoteRepositoryInterface;
 use App\Notes\Domain\Services\NoteDomainService;
@@ -24,33 +26,51 @@ class NoteApplicationService
 	public function __construct(
 		NoteDomainService $domainService,
 		NoteRepositoryInterface $noteRepository
-	)
-	{
+	) {
 		$this->domainService = $domainService;
 		$this->noteRepository = $noteRepository;
 	}
-	
+
 
 	public function createNote(CreateNoteDTO $dto): Note
 	{
-		return $this->domainService->createNote($dto);
+		$result = $this->domainService->createNote($dto);
+
+		if ($result) {
+			event(new NoteCreatedEvent($result->id, $dto->content));
+		}
+
+		return $result;
 	}
 
 
-	public function updateNote(int $id, int $userId, UpdateNoteDTO $dto): ?Note {
+	public function updateNote(int $id, int $userId, UpdateNoteDTO $dto): ?Note
+	{
 		$note = $this->noteRepository->getUserNote($id, $userId);
 
 		if (!$note) {
 			throw new NotFoundHttpException('Note not found');
 		}
 
-		$note->updateContent($dto->title, $dto->content, $dto->searchableText, $dto->preview);
+		$note->updateContent(
+			$dto->title,
+			$dto->content,
+			$dto->searchableText,
+			$dto->preview
+		);
 
-		return $this->noteRepository->update($note);
+		$result = $this->noteRepository->update($note);
+
+		if ($result) {
+			event(new NoteUpdatedEvent($note->id, $dto->content));
+		}
+
+		return $result;
 	}
 
 
-	public function deleteNote(int $id, int $userId): ?Note {
+	public function deleteNote(int $id, int $userId): ?Note
+	{
 		$note = $this->noteRepository->getUserNote($id, $userId);
 
 		if (!$note) {
@@ -118,6 +138,30 @@ class NoteApplicationService
 	}
 
 	/**
+	 * Paginated note titles for autocomplete.
+	 *
+	 * @param string $filter
+	 * @param int|null $excludeId
+	 * @param int $pageSize
+	 * @return LengthAwarePaginator
+	 */
+	public function getNoteTitlesPaginated(
+		int $userId,
+		string $filter = '',
+		int $pageSize = 20,
+		?int $excludeId = null,
+		): LengthAwarePaginator
+	{
+
+		return $this->noteRepository->getNoteTitlesPaginated(
+			$userId,
+			$filter,
+			$pageSize,
+			$excludeId,
+		);
+	}
+
+	/**
 	 * Get all notes for a user.
 	 *
 	 * @param int $userId
@@ -147,5 +191,4 @@ class NoteApplicationService
 
 		return $this->noteRepository->findDeltaByUser($userId, $delta);
 	}
-
 }

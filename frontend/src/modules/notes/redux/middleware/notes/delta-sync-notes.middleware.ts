@@ -3,12 +3,13 @@ import {
   deltaSyncNotesFailure,
   deltaSyncNotesFinalized,
   deltaSyncNotesSuccess,
+  getLocalNotesRequest,
   notesActions,
 } from "../../slice/notes.slice";
 import { NotesAdapter } from "../../../interface/adapters/notes.adapter";
 import { isHttpError } from "devnote/modules/auth/core/http-error";
 import LocalStorage from "devnote/core/local-storage";
-import { initSQLite, queryNotes, syncNotesDelta } from "../../../../../../lib/sqlite";
+import { initSQLite, syncNotesDelta } from "../../../../../../lib/sqlite";
 
 export const deltaSyncNotesFlowMiddleware: Middleware = (api) => next => async action => {
   next(action);
@@ -40,5 +41,15 @@ export const deltaSyncNotesFlowMiddleware: Middleware = (api) => next => async a
       api.dispatch(deltaSyncNotesFinalized());
 
     }
+  }
+};
+
+export const deltaSyncNotesSuccessMiddleware: Middleware = (api) => next => async action => {
+  next(action);
+
+  if (notesActions.deltaSyncNotesSuccess.match(action)) {
+
+    api.dispatch(getLocalNotesRequest());
+
   }
 };

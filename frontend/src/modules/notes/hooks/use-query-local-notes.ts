@@ -1,40 +1,19 @@
 import { useCallback, useRef } from "react";
 import { useNotesActions } from "devnote/modules/notes/hooks/use-notes-actions";
 import { debounce } from "lodash-es";
-import { SaveNoteArgs } from "./types";
+import { useActionDialogsActions } from "devnote/modules/shared/hooks/use-action-dialog-actions";
 
 export function useQueryLocalNotes() {
 
   const {
-    handleUpdateNoteById,
-    handleCancelUpdateRequest,
-    handleRegisterIsChangesUnsaved,
-    handleTriggerLocalQuery
+    handleTriggerLocalQuery,
+    handleSetActiveNoteId,
   } = useNotesActions();
 
-  const handleChangesRegistered = useCallback((id: number) => {
-    handleRegisterIsChangesUnsaved(id, true);
-    handleCancelUpdateRequest(id);
-  }, [handleCancelUpdateRequest, handleRegisterIsChangesUnsaved]);
+  const {
+    toggleClose
+  } = useActionDialogsActions();
 
-  const debouncedSaveNote = useRef(
-    debounce(({ title, content, id }: SaveNoteArgs) => {
-      handleUpdateNoteById({
-        id,
-        title,
-        content,
-      });
-    }, 2000)
-  ).current;
-
-	const handleEditorChange = useCallback(({ id, title, content }: SaveNoteArgs) => {
-    handleChangesRegistered(id);
-    debouncedSaveNote({
-			title,
-			content,
-			id
-		});
-  }, [debouncedSaveNote, handleChangesRegistered]);
 
   const debouncedTriggerLocalQuery = useRef(
     debounce(searchTerm => {
@@ -46,8 +25,15 @@ export function useQueryLocalNotes() {
     debouncedTriggerLocalQuery(searchTerm);
   }, [debouncedTriggerLocalQuery]);
 
+  const handleSelectResult = useCallback((noteId: number) => {
+  
+    handleSetActiveNoteId(noteId);
+    toggleClose("search");
+
+  }, [handleSetActiveNoteId, toggleClose]);
+
 	return {
-		handleEditorChange,
-    handleQueryLocalNotes
+    handleQueryLocalNotes,
+    handleSelectResult
 	};
 }

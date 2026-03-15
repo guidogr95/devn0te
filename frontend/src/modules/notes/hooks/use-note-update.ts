@@ -17,19 +17,17 @@ export function useNoteUpdate() {
   }, [handleCancelUpdateRequest, handleRegisterIsChangesUnsaved]);
 
   const debouncedSaveNote = useRef(
-    debounce(({ title, content, id }: SaveNoteArgs) => {
+    debounce(({ content, id }: SaveNoteArgs) => {
       handleUpdateNoteById({
         id,
-        title,
         content,
       });
     }, 2000)
   ).current;
 
-	const handleEditorChange = useCallback(({ id, title, content }: SaveNoteArgs) => {
+	const handleEditorChange = useCallback(({ id, content }: SaveNoteArgs) => {
     handleChangesRegistered(id);
     debouncedSaveNote({
-			title,
 			content,
 			id
 		});

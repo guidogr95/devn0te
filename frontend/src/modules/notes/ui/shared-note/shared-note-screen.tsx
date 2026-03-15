@@ -1,4 +1,3 @@
-import { EditorView } from "@tiptap/pm/view";
 import { AppLoader } from "devnote/modules/shared/ui/app-loader/app-loader";
 import { ShareNoteErrorCodesEnum } from "../../errors/share-note.error";
 import { SharedNotePasswordDialog } from "./shared-note-password-dialog/shared-note-password-dialog";

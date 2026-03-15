@@ -75,7 +75,7 @@ export class NoteMapper {
     return {
       id: input.id,
       title: input.title || "",
-      searchableText: input.searchable_text || "",
+      content: input.content || "",
       userId: input.user_id,
       updatedAt: input.updated_at,
     };

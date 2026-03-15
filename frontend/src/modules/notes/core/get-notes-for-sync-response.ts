@@ -3,7 +3,7 @@ export type SyncNoteResponse = {
 	title: string
 	user_id: number
 	updated_at: string
-	searchable_text: string
+	content: string
 }
 
 export type GetNotesForSyncResponse = {

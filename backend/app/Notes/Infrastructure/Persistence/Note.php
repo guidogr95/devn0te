@@ -33,6 +33,23 @@ class Note extends Model
 		'sharing_type' => NoteSharingType::class
 	];
 
+	public static function rules(): array
+	{
+		return [
+			'title' => [
+				'required',
+				'string',
+				'max:50',
+				'regex:/^[a-zA-Z0-9_-]+$/',
+				'not_regex:/^-/',
+				'not_regex:/-$/',
+				'not_regex:/--/',
+			],
+			'content' => 'nullable|string',
+			'user_id' => 'required|exists:users,id'
+		];
+	}
+
 	public function updateContent(
 		?string $title,
 		?string $content,
@@ -40,7 +57,9 @@ class Note extends Model
 		?string $preview
 	): void
 	{
-		$this->title = $title;
+		if ($title && $title !== null && trim($title) !== '') {
+			$this->title = $title;
+    }
 		$this->content = $content;
 		$this->searchable_text = $searchableText;
 		$this->preview = $preview;

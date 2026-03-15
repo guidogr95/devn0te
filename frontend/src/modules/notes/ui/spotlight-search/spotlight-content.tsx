@@ -1,110 +1,142 @@
 "use client";
-import { DialogContent, Input } from "devnote/modules/shared";
-import { Search } from "lucide-react";
-import { useState, ChangeEvent, useCallback, useEffect } from "react";
+import { DevNoteInput, DialogContent, ScrollArea } from "devnote/modules/shared";
+import { File, Search } from "lucide-react";
+// import "github-markdown-css/github-markdown.css";
+import { ChangeEvent, useCallback, useMemo } from "react";
+import ReactMarkdown from "react-markdown";
 import { useSelector } from "react-redux";
-import { selectIsLoadingDeltaSync } from "../../redux/selector/delta-sync-notes-selectors";
-import { selectIsLoadingLocalQuery, selectLocalQueryError, selectLocalQueryResults } from "../../redux/selector/query-local-notes-selectors";
+import {
+  selectedSelectedIndex,
+  selectLocalNotesList,
+  selectLocalQueryResults,
+  selectLocalQuerySearchTerm,
+} from "../../redux/selector/query-local-notes-selectors";
 import { useQueryLocalNotes } from "../../hooks/use-query-local-notes";
 import { useNotesActions } from "../../hooks/use-notes-actions";
+import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
+import { useRenderPreview } from "../../hooks/use-render-preview";
 
+export function SpotlightContent() {
+  const localQueryResults = useSelector(selectLocalQueryResults);
+  const localQuerySearchTerm = useSelector(selectLocalQuerySearchTerm);
+  const selectedIndex = useSelector(selectedSelectedIndex);
+	const localNotesList = useSelector(selectLocalNotesList);
+	
 
-type Props = {
-	handleToggle: (value: boolean) => void
-	isOpen: boolean
-}
+  // const isLoadingDeltaSync = useSelector(selectIsLoadingDeltaSync);
+  // const isLoadingLocalQuery = useSelector(selectIsLoadingLocalQuery);
+  // const localQueryError = useSelector(selectLocalQueryError);
 
-export function SpotlightContent({
-	handleToggle,
-	isOpen
-}: Props) {
-  const [query, setQuery] = useState("");
-  
-	const [selectedIndex, setSelectedIndex] = useState(0);
-	const localQueryResults = useSelector(selectLocalQueryResults);
+  const { handleSetLocalQuerySearchTerm } = useNotesActions();
 
+  const { handleQueryLocalNotes, handleSelectResult } = useQueryLocalNotes();
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.altKey && e.key === "k") {
-        e.preventDefault();
-        handleToggle(true);
+	const resolvedLinks = useMemo(() => {
+			const resolvedLinksMap: Record<number, string> = {};
+	
+			for (const note of localNotesList) {
+				resolvedLinksMap[note.id] = note.title;
+			}
+	
+			return resolvedLinksMap;
+		}, [localNotesList]);
+
+  const preprocessSearchTerm = useCallback((term: string): string => {
+    if (!term.trim()) return "";
+
+    // Split into words/phrases, append * to each word
+    const words = term.split(/\s+/).map((word) => {
+      // Preserve quoted phrases but add * to last word
+      if (word.startsWith('"') && word.endsWith('"')) {
+        const inner = word.slice(1, -1).trim();
+        return `"${inner}*"`;
       }
+      return `${word}*`;
+    });
 
-      if (isOpen) {
-        if (e.key === "ArrowDown") {
-          e.preventDefault();
-          setSelectedIndex((prev) => Math.min(prev + 1, localQueryResults.length - 1));
-        } else if (e.key === "ArrowUp") {
-          e.preventDefault();
-          setSelectedIndex((prev) => Math.max(prev - 1, 0));
-        } else if (e.key === "Enter" && localQueryResults.length > 0) {
-          e.preventDefault();
-          // Handle selection
-					const selected = localQueryResults[selectedIndex];
-          handleSelectResult(selected.id);
-        }
-      }
-    };
+    return words.join(" ");
+  }, []);
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, localQueryResults, selectedIndex]);
-
-	// const isLoadingDeltaSync = useSelector(selectIsLoadingDeltaSync);
-	// const isLoadingLocalQuery = useSelector(selectIsLoadingLocalQuery);
-	// const localQueryError = useSelector(selectLocalQueryError);
+  const handleChange = useCallback(
+    (ev: ChangeEvent<HTMLInputElement>) => {
+      const processedText = preprocessSearchTerm(ev.target.value.trim());
+      handleSetLocalQuerySearchTerm(ev.target.value);
+      handleQueryLocalNotes(processedText);
+    },
+    [handleQueryLocalNotes, handleSetLocalQuerySearchTerm, preprocessSearchTerm]
+  );
 
 	const {
-		handleSetActiveNoteId,
-		handleLocalQueryCleanup
-	} = useNotesActions();
-
-	const {
-		handleQueryLocalNotes
-	} = useQueryLocalNotes();
-
-	const preprocessSearchTerm = useCallback((term: string): string => {
-  if (!term.trim()) return "";
-
-  // Split into words/phrases, append * to each word
-  const words = term.split(/\s+/).map(word => {
-    // Preserve quoted phrases but add * to last word
-    if (word.startsWith("\"") && word.endsWith("\"")) {
-      const inner = word.slice(1, -1).trim();
-      return `"${inner}*"`;
-    }
-    return `${word}*`;
-  });
-
-  return words.join(" ");
-}, []);
-
-	const handleChange = useCallback((ev: ChangeEvent<HTMLInputElement>) => {
-		const processedText = preprocessSearchTerm(ev.target.value.trim());
-		setQuery(ev.target.value);
-    setSelectedIndex(0);
-		handleQueryLocalNotes(processedText);
-	}, [handleQueryLocalNotes, preprocessSearchTerm]);
-
-	const handleSelectResult = useCallback((noteId: number) => {
-		handleSetActiveNoteId(noteId);
-		handleToggle(false);
-		setQuery("");
-		handleLocalQueryCleanup();
-	}, [handleSetActiveNoteId, handleToggle]);
-
+		preview
+	} = useRenderPreview({
+		content: localQueryResults?.[selectedIndex]?.content || "",
+		resolvedLinks
+	});
 
   return (
-        
-	<DialogContent className="bg-gray-900 border-gray-700 p-0 max-w-2xl w-full max-h-[80vh] overflow-hidden">
-		<div className="flex flex-col">
+    <DialogContent className="bg-transparent rounded-none outline-none p-0 max-w-6xl border-none w-full max-h-[80vh] h-full overflow-hidden">
+      <div className="flex gap-4 h-full overflow-hidden">
+        <div className="flex flex-col flex-1 gap-5">
+          <div className="flex-1 border border-gray-700 bg-gray-900 rounded-md">
+            {localQueryResults.length > 0 ? (
+              <div className="p-2">
+                {localQueryResults.map((result, index) => {
+                  return (
+										<div
+											key={result.id}
+											className={`flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-gray-700 transition-colors rounded-md ${
+												index === selectedIndex
+													? "bg-gray-700 text-green-300"
+													: "text-gray-400"
+											}`}
+											onClick={() => handleSelectResult(result.id)}
+										>
+											<File className="h-4 w-4" />
+											<div className="line-clamp-1 text-sm">{result.title}.md</div>
+										</div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="p-8 text-center text-gray-400">
+                <Search className="w-12 h-12 mx-auto mb-4 text-gray-600" />
+                <p className="text-lg font-medium mb-2">No results found</p>
+                <p className="text-sm">{"Try searching for something else"}</p>
+              </div>
+            )}
+          </div>
+          <div>
+            <DevNoteInput
+              placeholder="Search for files, folders, and more..."
+              value={localQuerySearchTerm}
+              onChange={handleChange}
+              className="bg-gray-900 text-white w-full placeholder-gray-400 text-md h-12 border-gray-700 border outline-none"
+              autoFocus
+            />
+          </div>
+        </div>
+        <div className="w-[50%] border border-gray-700 bg-gray-900 rounded-md p-4 prose prose-md dark:prose-dark">
+	        <ScrollArea className="h-full rounded-md border">
+						<ReactMarkdown
+							remarkPlugins={[remarkGfm]}	
+							rehypePlugins={[rehypeRaw]}
+						>
+							{preview}
+							{/* {renderWithResolvedLinks(preview)} */}
+						</ReactMarkdown>
+					</ScrollArea>
+
+				</div>
+      </div>
+
+      {/* <div className="flex flex-col">
 			<div className="p-6 border-b border-gray-700">
 				<div className="relative">
 					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
 					<Input
 						placeholder="Search for files, folders, and more..."
-						value={query}
+						value={localQuerySearchTerm}
 						onChange={handleChange}
 						className="pl-12 bg-gray-800 border-gray-600 text-white placeholder-gray-400 text-lg h-12 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 						autoFocus
@@ -112,25 +144,18 @@ export function SpotlightContent({
 				</div>
 			</div>
 
-			{/* Results */}
 			<div className="max-h-96 overflow-y-auto">
 				{localQueryResults.length > 0 ? (
 					<div className="p-2">
 						{localQueryResults.map((result, index) => {
-							// const Icon = result.icon;
 							return (
 								<div
 									key={result.id}
-									className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+									className={`flex items-start gap-3 p-3 rounded-md cursor-pointer transition-colors ${
 										index === selectedIndex ? "bg-blue-600 text-white" : "text-gray-300 hover:bg-gray-800"
 									}`}
 									onClick={() => handleSelectResult(result.id)}
 								>
-									{/* <Icon
-										className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
-											index === selectedIndex ? "text-white" : "text-gray-400"
-										}`}
-									/> */}
 									<div className="flex-1 min-w-0">
 										<div
 											className={`font-medium text-sm mb-1 ${
@@ -139,13 +164,10 @@ export function SpotlightContent({
 										>
 											{result.title}
 										</div>
-										<div
-											className={`text-xs leading-relaxed line-clamp-1 ${
+										<div className={`text-xs leading-relaxed line-clamp-1 ${
 												index === selectedIndex ? "text-blue-100" : "text-gray-400"
 											}`}
-											dangerouslySetInnerHTML={{ __html: result.preview }}
-										>
-										</div>
+										dangerouslySetInnerHTML={{ __html: result.preview }} />
 									</div>
 								</div>
 							);
@@ -160,7 +182,6 @@ export function SpotlightContent({
 				)}
 			</div>
 
-			{/* Footer */}
 			{localQueryResults.length > 0 && (
 				<div className="border-t border-gray-700 px-4 py-3 bg-gray-800/50">
 					<div className="flex items-center justify-between text-xs text-gray-400">
@@ -182,7 +203,7 @@ export function SpotlightContent({
 					</div>
 				</div>
 			)}
-		</div>
-	</DialogContent>
+		</div> */}
+    </DialogContent>
   );
 }

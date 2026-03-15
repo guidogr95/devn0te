@@ -5,6 +5,7 @@ namespace App\Notes\Infrastructure\Repositories;
 use App\Notes\Application\DTOs\CreateDeletedNoteDTO;
 use App\Notes\Application\DTOs\CreateNoteDTO;
 use App\Notes\Infrastructure\Persistence\Note;
+use App\Notes\Domain\Models\Note as DomainNote;
 use App\Notes\Domain\Enums\SortDirection;
 use App\Notes\Domain\Enums\UserNoteSortField;
 use App\Notes\Domain\Repositories\NoteRepositoryInterface;
@@ -13,6 +14,7 @@ use Carbon\Carbon;
 use Database\Factories\NoteFactory;
 use DateTime;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Log;
 
 class EloquentNoteRepository implements NoteRepositoryInterface
 {
@@ -35,9 +37,23 @@ class EloquentNoteRepository implements NoteRepositoryInterface
 		return $note->delete();
 	}
 
-	public function findById(int $id): ?Note
+	public function findById(int $id): DomainNote
 	{
-		return Note::findOrFail($id);
+		$eloquentNote = Note::findOrFail($id);
+		
+		return new DomainNote(
+			id: $eloquentNote->id,
+			userId: $eloquentNote->user_id,
+			title: $eloquentNote->title,
+			content: $eloquentNote->content,
+			searchableText: $eloquentNote->searchable_text ?? null,
+			preview: $eloquentNote->preview ?? null,
+			sharingType: $eloquentNote->sharing_type ?? null,
+			sharingUrl: $eloquentNote->sharing_url ?? null,
+			sharingPassword: $eloquentNote->sharing_password ?? null,
+			createdAt: $eloquentNote->created_at ? \DateTimeImmutable::createFromMutable($eloquentNote->created_at) : null,
+			updatedAt: $eloquentNote->updated_at ? \DateTimeImmutable::createFromMutable($eloquentNote->updated_at) : null,
+		);
 	}
 
 	/**
@@ -52,8 +68,7 @@ class EloquentNoteRepository implements NoteRepositoryInterface
 		int $pageSize,
 		?UserNoteSortField $sortField = null,
 		?SortDirection $sortDirection = null
-	): LengthAwarePaginator
-	{
+	): LengthAwarePaginator {
 		$query = Note::where('user_id', $userId);
 
 		if ($sortField && $sortDirection) {
@@ -75,8 +90,7 @@ class EloquentNoteRepository implements NoteRepositoryInterface
 		int $pageSize,
 		?UserNoteSortField $sortField = null,
 		?SortDirection $sortDirection = null
-	): LengthAwarePaginator
-	{
+	): LengthAwarePaginator {
 		$query = Note::where('user_id', $userId)
 			->select(['id', 'user_id', 'title', 'preview', 'created_at', 'updated_at']);
 
@@ -126,7 +140,7 @@ class EloquentNoteRepository implements NoteRepositoryInterface
 			->values()
 			->toArray();
 
-			return array_map(fn($id) => (int) $id, $deleted);
+		return array_map(fn($id) => (int) $id, $deleted);
 	}
 
 
@@ -137,7 +151,7 @@ class EloquentNoteRepository implements NoteRepositoryInterface
 	{
 
 		$query = Note::where('user_id', $userId)
-			->select(['id', 'user_id', 'title', 'searchable_text', 'updated_at']);
+			->select(['id', 'user_id', 'title', 'content', 'updated_at']);
 
 		if ($since) {
 			$query->where('updated_at', '>', $since);
@@ -156,4 +170,46 @@ class EloquentNoteRepository implements NoteRepositoryInterface
 		return Note::where('sharing_url', $sharingUrl)->firstOrFail();
 	}
 
+	/**
+	 * Paginated note titles for autocomplete.
+	 *
+	 * @param int $userId
+	 * @param string $filter
+	 * @param int $pageSize
+	 * @param int|null $excludeId
+	 * @return LengthAwarePaginator
+	 */
+	public function getNoteTitlesPaginated(
+		int $userId,
+		string $filter = '',
+		int $pageSize = 20,
+		?int $excludeId = null,
+	): LengthAwarePaginator {
+		$query = Note::where('user_id', $userId)
+			->select(['id', 'title']);
+
+		if ($filter) {
+			$query->where('title', 'ILIKE', "%{$filter}%");
+		}
+
+		if ($excludeId) {
+			$query->where('id', '!=', $excludeId);
+		}
+
+		return $query->orderBy('title')->paginate($pageSize);
+	}
+
+	public function filterValidIdsForUser(array $ids, int $userId): array
+	{
+		if (empty($ids)) {
+			return [];
+		}
+
+		return Note::query()
+			->whereIn('id', $ids)
+			->where('user_id', $userId)
+			->pluck('id')
+			->map(fn($id) => (int) $id)
+			->all();
+	}
 }

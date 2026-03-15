@@ -50,13 +50,12 @@ export async function queryNotes(options: QueryNotesArgs): Promise<LocalNoteEnti
         id: row[0],
         userId: row[1],
         title: row[2],
-        searchableText: row[3],
-        updatedAt: row[4],
-        preview: row[5]
+        content: row[3],
+        searchableText: row[4],
+        updatedAt: row[5]
       })));
       else reject(new Error(event.data.error));
     };
-
     postMessageToWorker({
       action: SQLiteWorkerActionsEnum.QUERY_NOTES,
       payload: options
@@ -71,7 +70,6 @@ export async function syncNotesDelta(notesDelta: SQLiteNotesDeltaPayload): Promi
       if (event.data.success) resolve();
       else reject(new Error(event.data.error));
     };
-
     postMessageToWorker({
       action: SQLiteWorkerActionsEnum.SYNC_NOTES_DELTA,
       payload: notesDelta
