@@ -7,6 +7,7 @@ import { createGenericDialog } from "devnote/modules/shared";
 import { NoteEntity } from "devnote/modules/notes/core/entity/note.entity";
 import { createShareNoteDialogContent } from "./create-share-note-dialog";
 
+
 export function useDocumentHeaderMenu() {
 
 	const activeNote = useSelector(selectActiveNote);
@@ -17,25 +18,9 @@ export function useDocumentHeaderMenu() {
 
 	const { showToast, dismissToast } = useToastActions();
 
-	const onBeforeDelete = useCallback((id: number) => {
-		showToast({
-			type: "custom",
-			jsx: (_id) => createGenericDialog({
-				title: "Delete note?",
-				description: "This action cannot be undone. This will permanently delete your note and remove it from our servers.",
-				onOk: () => {
-					dismissToast(_id);
-					handleDeleteNoteById(id);
-				},
-				onCancel: () => {
-					dismissToast(_id);
-				}
-			}),
-			data: {
-				duration: Infinity
-			}
-		});
-	}, [handleDeleteNoteById, showToast, dismissToast]);
+	const handleDeleteNote = useCallback((id: number) => {
+		handleDeleteNoteById(id);
+	}, [handleDeleteNoteById]);
 
 	const onBeforeShare = useCallback((note: NoteEntity) => {
 		showToast({
@@ -64,16 +49,13 @@ export function useDocumentHeaderMenu() {
 	}, [dismissToast, showToast]);
 
 	const handleDeleteNote = useCallback(() => {
-		if (!activeNote) return;
-		onBeforeDelete(activeNote.id);
-	}, [activeNote, onBeforeDelete]);
-
 	const handleShareNote = useCallback(() => {
 		if (!activeNote) return;
 		onBeforeShare(activeNote);
 	}, [activeNote, onBeforeShare]);
 
 	return {
+		activeNote,
 		handleDeleteNote,
 		handleShareNote
 	};

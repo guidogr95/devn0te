@@ -2,6 +2,7 @@ import { PayloadAction } from "@reduxjs/toolkit";
 import { NotesState } from "../../slice/notes.slice";
 import { GetNotesSortOptions } from "devnote/modules/notes/core/get-notes-sort-options";
 import { PaginatedNotesPreviewValueObject } from "devnote/modules/notes/core/get-notes-preview-response";
+import { NoteEntity } from "devnote/modules/notes/core/entity/note.entity";
 
 export const getNotesListRequest = (state: NotesState, action: PayloadAction<{ sortOptions: GetNotesSortOptions}>) => {
   state.isLoadingNotes = true;
@@ -39,5 +40,18 @@ export const getNotesListNextPageFailure = (state: NotesState, action: PayloadAc
 
 export const getNotesListNextPageFinalized = (state: NotesState) => {
   state.isLoadingNotesNextPage = false;
+};
+
+export const updateNoteInList = (state: NotesState, action: PayloadAction<NoteEntity>) => {
+  if (!state.notesList) return;
+  const note = action.payload;
+  const index = state.notesList.data.findIndex(n => n.id === note.id);
+  if (index === -1) return;
+  const item = state.notesList.data[index];
+  item.title = note.title;
+  item.updatedAt = note.updatedAt;
+  if (note.content !== undefined) {
+    item.preview = note.content.replace(/[#*_`>!\[\]()]/g, '').trim().slice(0, 120);
+  }
 };
 

@@ -73,9 +73,9 @@ export class NotesAdapter {
     );
   }
 
-  static async updateNoteById({ content, id }: UpdateNoteInput, config?: AxiosRequestConfig): Promise<NoteEntity | HttpError> {
+  static async updateNoteById({ content, title, id }: UpdateNoteInput, config?: AxiosRequestConfig): Promise<NoteEntity | HttpError> {
 
-    const body = NoteMapper.noteInputToDto({ content });
+    const body = NoteMapper.noteInputToDto({ content, title });
 
 		return handleApiRequest(() =>
       axiosInstance.patch<NoteResponse>(`/notes/${id}`, body, { signal: config?.signal })

@@ -7,7 +7,9 @@ export const deleteNoteByIdRequest = (state: NotesState, action: PayloadAction<n
   state.deletingNoteError = "";
 };
 
-export const deleteNoteByIdSuccess = (_state: NotesState, _action: PayloadAction<NoteEntity>) => {
+export const deleteNoteByIdSuccess = (state: NotesState, action: PayloadAction<NoteEntity>) => {
+  if (!state.notesList) return;
+  state.notesList.data = state.notesList.data.filter(n => n.id !== action.payload.id);
 };
 
 export const deleteNoteByIdFailure = (state: NotesState, action: PayloadAction<string>) => {

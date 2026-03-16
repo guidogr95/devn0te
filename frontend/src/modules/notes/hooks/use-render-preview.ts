@@ -15,9 +15,9 @@ export const useRenderPreview = ({
       const id = Number(idStr);
       const title = resolvedLinks[id];
       if (title) {
-        return `[[${title}:${id}]]`;
+        return `[${title}](devnote://note/${id})`;
       } else {
-        return `[[${id}]] #invalid link note id`;
+        return `<span class="wiki-link-broken">[[${id}]]</span>`;
       }
     });
   }, []);

@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -96,13 +97,13 @@ class AuthController extends Controller
       'user' => $user
     ], 201);
 
+		} catch (ValidationException $e) {
+
+			return response()->json(['errors' => $e->errors()], Response::HTTP_UNPROCESSABLE_ENTITY);
 		} catch (\Exception $e) {
 
 			Log::error("Failed to register: {$e->getMessage()}");
-			return response()->json(['error' => "Failed to register: {$e->getMessage()}"], Response::HTTP_INTERNAL_SERVER_ERROR);
-
+			return response()->json(['error' => 'Failed to register.'], Response::HTTP_INTERNAL_SERVER_ERROR);
 		}
-
-    
   }
 }

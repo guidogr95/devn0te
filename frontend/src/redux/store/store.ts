@@ -4,7 +4,7 @@ import { notesReducer } from "devnote/modules/notes/redux/slice/notes.slice";
 import { sharedNoteReducer } from "devnote/modules/notes/redux/slice/shared-note.slice";
 import { toastReducer } from "devnote/modules/shared/redux/slice/toast.slice";
 // Auth middleware
-import { loginFlowMiddleware, verifyTokenFlowMiddleware } from "devnote/modules/auth/redux/middleware/auth.middleware";
+import { loginFlowMiddleware, logoutFlowMiddleware, signupFlowMiddleware, verifyTokenFlowMiddleware } from "devnote/modules/auth/redux/middleware/auth.middleware";
 // Toast middleware
 import { dismissToastMiddleware, showToastMiddleware } from "devnote/modules/shared/redux/middleware/toast.middleware";
 // Note middleware
@@ -21,13 +21,16 @@ import { deltaSyncNotesFlowMiddleware, deltaSyncNotesSuccessMiddleware } from "d
 import { getLocalNotesListFlowMiddleware, queryLocalNotesFlowMiddleware } from "devnote/modules/notes/redux/middleware/notes/query-local-notes.middleware";
 import { actionDialogReducer } from "devnote/modules/shared/redux/slice/action-dialog.slice";
 import { toggleCloseMiddleware, toggleOpenMiddleware } from "devnote/modules/shared/redux/middleware/action-dialog.middleware";
+import { consoleReducer } from "devnote/modules/console/redux/slice/console.slice";
+import { executeCommandMiddleware } from "devnote/modules/console/redux/middleware/console.middleware";
 
 const rootReducer = combineReducers({
   auth: authReducer,
   notes: notesReducer,
   sharedNote: sharedNoteReducer,
   toast: toastReducer,
-  actionDialog: actionDialogReducer
+  actionDialog: actionDialogReducer,
+  console: consoleReducer,
 });
 
 export const store = configureStore({
@@ -51,6 +54,8 @@ export const store = configureStore({
     .prepend(
       // Auth middleware
       loginFlowMiddleware,
+      logoutFlowMiddleware,
+      signupFlowMiddleware,
       verifyTokenFlowMiddleware,
       // Toast middleware
       showToastMiddleware,
@@ -82,7 +87,9 @@ export const store = configureStore({
       getLocalNotesListFlowMiddleware,
       // action dialog,
       toggleCloseMiddleware,
-      toggleOpenMiddleware
+      toggleOpenMiddleware,
+      // console
+      executeCommandMiddleware
     ),
 });
 

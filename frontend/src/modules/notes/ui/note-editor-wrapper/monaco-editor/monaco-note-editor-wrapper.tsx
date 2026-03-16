@@ -10,7 +10,7 @@ export function MonacoNoteEditorWrapper() {
 
   if (isLoadingActiveNote) {
     return (
-      <div className="w-full bg-bg-primary">
+      <div className="w-full bg-gray-900">
         <AppLoader />
       </div>
     );

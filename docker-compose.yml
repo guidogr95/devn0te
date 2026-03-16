@@ -3,7 +3,8 @@ version: '3.7'
 services:
 
   backend:
-    # entrypoint: ["sh", "/app/backend/entrypoint.sh"]
+    entrypoint: ["sh", "/app/backend/entrypoint.sh"]
+    command: ["php", "artisan", "serve", "--host=0.0.0.0"]
     build:
       context: ./backend
       dockerfile: Dockerfile

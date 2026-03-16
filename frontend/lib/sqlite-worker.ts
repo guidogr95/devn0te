@@ -101,19 +101,24 @@ async function handleQueryNotes(
 ): Promise<SyncNoteEntity[]> {
   const { searchTerm, userId } = payload;
 
-  // const results = db.exec({
-  //   sql: "SELECT * FROM notes",
-  //   returnValue: "resultRows"
-  // });
-
-  // const results = db.exec({
-  //   sql: "SELECT * FROM notes WHERE searchable_text LIKE ?", bind: [`%${searchTerm}%`] ,
-  //   returnValue: "resultRows"
-  // });
-
-  // return results as Note[];
   if (!searchTerm || searchTerm.trim() === "") {
     // If search term is empty, return all notes for the user, ordered by most recently updated
+    const results = db.exec({
+      sql: `
+        SELECT *
+        FROM notes
+        WHERE user_id = ?
+        ORDER BY updated_at DESC
+      `,
+      bind: [userId],
+      returnValue: "resultRows",
+    });
+    return results;
+  }
+
+  const processed = preprocessSearchTerm(searchTerm);
+
+  if (!processed) {
     const results = db.exec({
       sql: `
         SELECT *
@@ -136,11 +141,20 @@ async function handleQueryNotes(
     WHERE notes_fts MATCH ? AND n.user_id = ?
     ORDER BY rank
   `,
-    bind: [searchTerm, userId],
+    bind: [processed, userId],
     returnValue: "resultRows",
   });
 
   return results;
+}
+
+function preprocessSearchTerm(raw: string): string {
+  return raw
+    .trim()
+    .split(/[^a-zA-Z0-9]+/)
+    .filter(Boolean)
+    .map(word => `${word}*`)
+    .join(' ');
 }
 
 

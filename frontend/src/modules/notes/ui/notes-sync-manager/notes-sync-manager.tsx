@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useAuthStorage } from "devnote/modules/auth/hooks/use-auth-storage";
 import { selectUser } from "devnote/modules/auth/redux/selector/auth-selectors";
 import { useSelector } from "react-redux";
@@ -9,21 +9,21 @@ export const NotesSyncManager = () => {
 		isAuthenticated
 	} = useAuthStorage();
 	const user = useSelector(selectUser);
+	const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
 	const {
 		handleTriggerDeltaSync
 	} = useNotesDeltaSyncActions();
 
 	const performDeltaSync = useCallback(() => {
-		console.log("called performDeltaSync");
-
 		if (!isAuthenticated || !user) return;
-
-		console.log("running performDeltaSync");
-
 		handleTriggerDeltaSync(user.id);
-		
 	}, [handleTriggerDeltaSync, isAuthenticated, user]);
+
+	const startInterval = useCallback(() => {
+		if (intervalRef.current) clearInterval(intervalRef.current);
+		intervalRef.current = setInterval(performDeltaSync, 5 * 60 * 1000);
+	}, [performDeltaSync]);
 
 	// delta sync on load/login/user change
 	useEffect(() => {
@@ -33,11 +33,24 @@ export const NotesSyncManager = () => {
 	useEffect(() => {
     if (!isAuthenticated || !user) return;
 
-    const intervalId = setInterval(performDeltaSync, 5 * 60 * 1000);  // 5 mins
+    startInterval();
 
-    return () => clearInterval(intervalId);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [performDeltaSync]);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        if (intervalRef.current) clearInterval(intervalRef.current);
+      } else {
+        performDeltaSync();
+        startInterval();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [isAuthenticated, user, performDeltaSync, startInterval]);
   
   return null;
 };

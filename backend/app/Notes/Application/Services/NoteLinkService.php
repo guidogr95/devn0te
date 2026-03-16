@@ -22,6 +22,11 @@ class NoteLinkService
 	 */
 	public function syncLinksFromContent(int $sourceNoteId, ?string $content): void
 	{
+		if (!$content) {
+			$this->noteLinkRepository->deleteBySource($sourceNoteId);
+			return;
+		}
+
 		try {
 			$sourceNote = $this->noteRepository->findById($sourceNoteId);
 		} catch (ModelNotFoundException $e) {

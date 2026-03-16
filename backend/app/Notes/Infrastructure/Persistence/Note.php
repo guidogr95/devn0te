@@ -57,12 +57,14 @@ class Note extends Model
 		?string $preview
 	): void
 	{
-		if ($title && $title !== null && trim($title) !== '') {
+		if ($title !== null && trim($title) !== '') {
 			$this->title = $title;
-    }
-		$this->content = $content;
-		$this->searchable_text = $searchableText;
-		$this->preview = $preview;
+		}
+		if ($content !== null) {
+			$this->content = $content;
+			$this->searchable_text = $searchableText;
+			$this->preview = $preview;
+		}
 	}
 
 	public function changeSharingType(NoteSharingType $sharingType, ?string $password = null): void

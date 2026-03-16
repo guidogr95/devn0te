@@ -8,7 +8,8 @@ import { useActionDialogsActions } from "devnote/modules/shared/hooks/use-action
 
 export function SpotlightSearch() {
   const {
-    toggleClose
+    toggleClose,
+    toggleOpen
   } = useActionDialogsActions();
 
 
@@ -31,10 +32,11 @@ export function SpotlightSearch() {
             fluid
             variant="ghost"
             className="bg-gray-900 flex justify-between w-full border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
+            onClick={() => toggleOpen("search")}
           >
             <Search className="w-4 h-4 mr-2" />
             Search...
-            <kbd className="ml-auto text-xs bg-gray-800 px-1.5 py-0.5">⌘K</kbd>
+            <kbd className="ml-auto text-xs bg-gray-800 px-1.5 py-0.5">Alt+K</kbd>
           </Button>
         </DialogTrigger>
 

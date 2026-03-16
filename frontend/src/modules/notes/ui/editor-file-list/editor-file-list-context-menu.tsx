@@ -3,32 +3,34 @@ import {
   ContextMenuItem,
   ContextMenuSeparator,
 } from "devnote/modules/shared/ui/context-menu";
-import { Trash2, Copy, Share2 } from "lucide-react";
-// import { useEditorFileListContextMenu } from "./use-editor-file-list-context-menu";
+import { Trash2, Copy, Share2, Pencil } from "lucide-react";
 
 type Props = {
-	noteId: number | null
-}
+  noteId: number | null
+  onRenameClick: () => void
+  onDeleteClick: () => void
+  onShareClick: () => void
+};
 
-export const EditorFileListContextMenu = ({ noteId }: Props) => {
-  // const { selectedNoteId, handleDelete, handleDuplicate, handleShare, handleCopy } =
-  //   useEditorFileListContextMenu();
-
-	console.log("noteId", noteId);
-
+export const EditorFileListContextMenu = ({ onRenameClick, onDeleteClick, onShareClick }: Props) => {
   return (
     <ContextMenuContent className="w-56">
-      <ContextMenuItem onClick={() => console.log("hey")}>
+      <ContextMenuItem onClick={onRenameClick}>
+        <Pencil className="mr-2 h-4 w-4" />
+        <span>Rename</span>
+      </ContextMenuItem>
+      <ContextMenuSeparator />
+      <ContextMenuItem onClick={() => console.log("copy")}>
         <Copy className="mr-2 h-4 w-4" />
         <span>Copy</span>
       </ContextMenuItem>
       <ContextMenuSeparator />
-      <ContextMenuItem onClick={() => console.log("hey")}>
+      <ContextMenuItem onClick={onShareClick}>
         <Share2 className="mr-2 h-4 w-4" />
         <span>Share</span>
       </ContextMenuItem>
       <ContextMenuSeparator />
-      <ContextMenuItem onClick={() => console.log("hey")} className="text-red-400">
+      <ContextMenuItem onClick={onDeleteClick} className="text-red-400">
         <Trash2 className="mr-2 h-4 w-4" />
         <span>Delete</span>
       </ContextMenuItem>

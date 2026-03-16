@@ -1,1 +1,1 @@
-export type DialogType = "search" | "create-file"
+export type DialogType = "search" | "create-file" | "command-palette"

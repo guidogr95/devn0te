@@ -1,11 +1,15 @@
 
+import { useState } from "react";
 import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "devnote/modules/shared";
 import { MoreVertical } from "lucide-react";
 import { useDocumentHeaderMenu } from "./use-document-header-menu";
+import { DeleteNoteDialog } from "devnote/modules/notes/ui/editor-file-list/delete-note-dialog";
 
 export const DocumentHeaderMenu = () => {
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   
   const {
+    activeNote,
     handleDeleteNote,
     handleShareNote
   } = useDocumentHeaderMenu();
@@ -31,11 +35,22 @@ export const DocumentHeaderMenu = () => {
             Share
           </DropdownMenuItem>
           <DropdownMenuSeparator className="bg-bg-secondary" />
-          <DropdownMenuItem onClick={handleDeleteNote} className="focus:bg-bg-secondary focus:text-gray-100">
+          <DropdownMenuItem onClick={() => setIsDeleteOpen(true)} className="focus:bg-bg-secondary focus:text-gray-100">
             Delete
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      {activeNote && (
+        <DeleteNoteDialog
+          note={activeNote}
+          isOpen={isDeleteOpen}
+          onClose={() => setIsDeleteOpen(false)}
+          onConfirm={() => {
+            handleDeleteNote(activeNote.id);
+            setIsDeleteOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 };

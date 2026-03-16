@@ -15,7 +15,7 @@ export const Route = createRootRoute({
       <Provider store={store}>
         <Outlet />
         <NotesSyncManager />
-        <TanStackRouterDevtools />
+        {/* <TanStackRouterDevtools /> */}
         <Toaster closeButton={false} />
       </Provider>
     </QueryClientProvider>

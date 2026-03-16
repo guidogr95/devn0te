@@ -3,16 +3,11 @@ import {
   selectDialogType,
   selectIsActionDialogOpen,
 } from "devnote/modules/shared/redux/selectors/action-dialog-selectors";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
-import { useMutation } from "@tanstack/react-query";
-import axiosInstance from "devnote/config/api/axios-instance";
-import { NoteResponse } from "../../core/get-notes-response";
-import { CreateNoteInput } from "../../core/create-note-input";
-import { NoteMapper } from "../../interface/mappers/notes.mapper";
-import { NotesAdapter } from "../../interface/adapters/notes.adapter";
-import { NoteEntity } from "../../core/entity/note.entity";
-import { HttpError, isHttpError } from "devnote/modules/auth/core/http-error";
+import { useNotesActions } from "devnote/modules/notes/hooks/use-notes-actions";
+import { selectIsLoadingCreateNote } from "devnote/modules/notes/redux/selector/notes-selectors";
+import { RootState } from "devnote/redux/store/store";
 
 const validateFileName = (name: string): string => {
   if (!name.trim()) return "File name is required";
@@ -39,14 +34,41 @@ const validateFileName = (name: string): string => {
 
 export const useFileCreationDialog = () => {
   const { toggleClose } = useActionDialogsActions();
+  const { handleCreateNote } = useNotesActions();
 
   const [fileName, setNewFileName] = useState("");
   const [fileNameError, setFileNameError] = useState("");
 
   const dialogType = useSelector(selectDialogType);
   const isActionDialogOpen = useSelector(selectIsActionDialogOpen);
+  const isLoadingCreateNote = useSelector(selectIsLoadingCreateNote);
+  const creatingNoteError = useSelector((state: RootState) => state.notes.creatingNoteError);
 
   const isOpen = dialogType === "create-file" && isActionDialogOpen;
+
+  const prevLoadingRef = useRef(false);
+
+  useEffect(() => {
+    const wasLoading = prevLoadingRef.current;
+    prevLoadingRef.current = isLoadingCreateNote;
+
+    if (wasLoading && !isLoadingCreateNote) {
+      if (creatingNoteError) {
+        setFileNameError(creatingNoteError);
+      } else {
+        setNewFileName("");
+        setFileNameError("");
+        toggleClose("create-file");
+      }
+    }
+  }, [isLoadingCreateNote, creatingNoteError, toggleClose]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setNewFileName("");
+      setFileNameError("");
+    }
+  }, [isOpen]);
 
   const handleCreateFile = () => {
     const error = validateFileName(fileName);
@@ -54,40 +76,8 @@ export const useFileCreationDialog = () => {
       setFileNameError(error);
       return;
     }
-
-    // Here you would add the file creation logic
-    mutate({
-      title: fileName,
-    });
-    setNewFileName("");
-    setFileNameError("");
+    handleCreateNote({ title: fileName });
   };
-
-  const { mutate, isPending } = useMutation<
-    NoteEntity,
-    HttpError,
-    CreateNoteInput
-  >({
-    mutationFn: async (input: CreateNoteInput) => {
-      // Call your API adapter directly
-      const response = await NotesAdapter.createNote(input);
-
-      if (isHttpError(response)) {
-        throw response;
-      }
-
-      return response;
-    },
-    onSuccess: (note) => {
-      console.log("note:", note);
-      setNewFileName("");
-      setFileNameError("");
-      handleToggle(false); 
-    },
-    onError: (error) => {
-      setFileNameError(error?.data?.error || "Failed to create note");
-    },
-  });
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>): void => {
     const value = e.target.value.replace(" ", "-").trim();
@@ -102,6 +92,7 @@ export const useFileCreationDialog = () => {
 
     toggleClose("create-file");
   };
+
   return {
     handleToggle,
     handleInputChange,
@@ -109,6 +100,6 @@ export const useFileCreationDialog = () => {
     isOpen,
     fileName,
     fileNameError,
-    isLoading: isPending,
+    isLoading: isLoadingCreateNote,
   };
 };

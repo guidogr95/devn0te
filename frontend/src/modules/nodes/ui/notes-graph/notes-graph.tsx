@@ -109,9 +109,10 @@ import { Route } from "devnote/routes/dashboard/nodes/{-$id}.lazy";
 type GraphProps = {
   nodes: GraphNode[]
   edges: GraphEdge[]
+  activeNoteId?: string
 }
 
-export const Graph = ({ nodes, edges }: GraphProps) => {
+export const Graph = ({ nodes, edges, activeNoteId }: GraphProps) => {
   // const nodes: GraphNode[] = [
   //   { id: "1", label: "1" },
   //   { id: "2", label: "2" },
@@ -123,13 +124,22 @@ export const Graph = ({ nodes, edges }: GraphProps) => {
   const graphRef = useRef<GraphCanvasRef | null>(null);
 
   // This hook must run inside Canvas tree
-  const { selections, actives, onNodeClick, onCanvasClick, onNodePointerOver, onNodePointerOut } =
+  const { selections, actives, onNodeClick, onCanvasClick, onNodePointerOver, onNodePointerOut, setSelections } =
     useSelection({
       ref: graphRef,
       nodes,
       edges,
       pathSelectionType: "out",
     });
+
+  useEffect(() => {
+    if (!activeNoteId) return;
+    const timer = setTimeout(() => {
+      setSelections([activeNoteId]);
+      graphRef.current?.centerGraph([activeNoteId]);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [activeNoteId]);
 
     
   const navigate = useNavigate();
@@ -155,59 +165,6 @@ export const Graph = ({ nodes, edges }: GraphProps) => {
 
     handleSetActiveNoteId(parseInt(data.id));
   },[handleSetActiveNoteId]);
-
-//   const treeEdges: GraphEdge[] = [
-//   {
-//     id: "0->1",
-//     source: "n-0",
-//     target: "n-1",
-//     label: "Edge 0-1"
-//   },
-//   {
-//     id: "0->2",
-//     source: "n-0",
-//     target: "n-2",
-//     label: "Edge 0-2"
-//   },
-//   {
-//     id: "2->3",
-//     source: "n-2",
-//     target: "n-3",
-//     label: "Edge 2-3"
-//   },
-//   {
-//     id: "3->4",
-//     source: "n-3",
-//     target: "n-4",
-//     label: "Edge 3-4"
-//   },
-//   {
-//     id: "4->0",
-//     source: "n-4",
-//     target: "n-0",
-//     label: "Edge 4-0"
-//   }
-// ];
-
-// const random = (floor: any, ceil: any) => Math.floor(Math.random() * ceil) + floor;
-
-// const counts = [5, 100, 5843, 9992, 1000000];
-
-// const simpleNodes: GraphNode[] =
-//   range(5).map(i => ({
-//     id: `n-${i}`,
-//     label: `Node ${i}`
-//   }));
-
-//   console.log("these simple nodes", simpleNodes);
-//   console.log("these treeEdges", treeEdges);
-
-//   console.log("actual nodes", nodes);
-//   console.log("actual edges", edges);
-
-
-
-//   return <GraphCanvas layoutType="hierarchicalTd" nodes={simpleNodes} edges={treeEdges} />;
 
 
   return (
@@ -241,6 +198,7 @@ export const NotesGraph = () => {
   const [graphEdges, setGraphEdges] = useState<GraphEdge[]>([]);
 
   const navigate = useNavigate();
+  const { handleDeleteNoteById } = useNotesActions();
 
   const { mutate, isPending } = useMutation<
     Array<NoteLinkEntity>,
@@ -286,16 +244,27 @@ export const NotesGraph = () => {
 
   }, [localNotesList]);
 
-  if (isLoading || !graphEdges.length || !localNotesList.length) return (
+  if (isLoading || !localNotesList.length) return (
     <h1>Loading</h1>
   );
 
   return (
       <div>
-        {activeNote && <NotePreview note={activeNote} onClose={() => navigate({ to: Routes.dashboard.children.nodes.path })} />}
+        {activeNote && (
+          <NotePreview
+            note={activeNote}
+            edges={graphEdges}
+            onClose={() => navigate({ to: Routes.dashboard.children.nodes.path })}
+            onDelete={() => {
+              handleDeleteNoteById(activeNote.id);
+              navigate({ to: Routes.dashboard.children.nodes.path });
+            }}
+          />
+        )}
         <Graph
           nodes={nodes}
           edges={graphEdges}
+          activeNoteId={activeNoteId}
         />
       </div>
   );

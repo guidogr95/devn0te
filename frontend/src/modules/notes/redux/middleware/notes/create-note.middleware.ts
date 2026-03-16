@@ -20,7 +20,8 @@ export const createNoteFlowMiddleware: Middleware = (api) => next => async actio
     const response = await NotesAdapter.createNote(action.payload);
 
     if (isHttpError(response)) {
-      api.dispatch(createNoteFailure(response.message));
+      const titleError = response.data?.errors?.title?.[0];
+      api.dispatch(createNoteFailure(titleError ?? response.data?.error ?? response.message));
     } else {
       api.dispatch(createNoteSuccess(response));
     }

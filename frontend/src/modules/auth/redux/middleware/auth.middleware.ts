@@ -4,6 +4,8 @@ import { AuthAdapter } from "../../interface/adapters/auth.adapter";
 import { isHttpError } from "../../core/http-error";
 import LocalStorage from "devnote/core/local-storage";
 import { TOKEN_KEY } from "devnote/core/constants/storage";
+import { clearUserData } from "../../../../../lib/sqlite";
+import { RootState } from "devnote/redux/store/store";
 
 export const loginFlowMiddleware: Middleware = (api) => next => async action => {
   next(action);
@@ -32,5 +34,40 @@ export const verifyTokenFlowMiddleware: Middleware = (api) => next => async acti
       api.dispatch(authActions.verifyTokenSuccess(response));
     }
     api.dispatch(authActions.verifyTokenFinalized());
+  }
+};
+
+export const signupFlowMiddleware: Middleware = (api) => next => async action => {
+  next(action);
+
+  if (authActions.signupRequest.match(action)) {
+    const { name, email, password, passwordConfirmation } = action.payload;
+    const response = await AuthAdapter.register(name, email, password, passwordConfirmation);
+    if (isHttpError(response)) {
+      api.dispatch(authActions.signupFailure(response));
+    } else {
+      LocalStorage.setItem(TOKEN_KEY, response.token);
+      api.dispatch(authActions.signupSuccess(response.user));
+    }
+    api.dispatch(authActions.signupFinalized());
+  }
+};
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export const logoutFlowMiddleware: Middleware<{}, RootState> = (api) => next => async action => {
+  next(action);
+
+  if (authActions.logoutRequest.match(action)) {
+    const state = api.getState();
+    const userId = state.auth.user?.id;
+
+    await clearUserData();
+
+    if (userId) {
+      LocalStorage.removeItem(`last_synced_${userId}`);
+    }
+    LocalStorage.removeItem(TOKEN_KEY);
+
+    api.dispatch(authActions.logoutSuccess());
   }
 };

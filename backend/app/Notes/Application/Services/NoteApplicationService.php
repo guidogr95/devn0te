@@ -61,7 +61,7 @@ class NoteApplicationService
 
 		$result = $this->noteRepository->update($note);
 
-		if ($result) {
+		if ($result && $dto->content !== null) {
 			event(new NoteUpdatedEvent($note->id, $dto->content));
 		}
 

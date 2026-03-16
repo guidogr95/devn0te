@@ -7,7 +7,8 @@ import {
   setUpdateNoteAbortController,
   cancelUpdateNoteAbortController,
   registerIsChangesUnsaved,
-  deltaSyncNotesRequest
+  deltaSyncNotesRequest,
+  updateNoteInList
 } from "../../slice/notes.slice";
 import { NotesAdapter } from "../../../interface/adapters/notes.adapter";
 import { isHttpError } from "devnote/modules/auth/core/http-error";
@@ -45,6 +46,7 @@ export const updateNoteByIdSuccessMiddleware: Middleware<{}, RootState> = (api) 
     const state = api.getState();
 
     api.dispatch(registerIsChangesUnsaved({ id: note.id, state: false }));
+    api.dispatch(updateNoteInList(note));
 
     const { user } = state.auth;
 

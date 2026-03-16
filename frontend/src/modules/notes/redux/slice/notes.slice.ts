@@ -157,6 +157,7 @@ export const {
   getNotesListNextPageSuccess,
   getNotesListNextPageFailure,
   getNotesListNextPageFinalized,
+  updateNoteInList,
   getNoteByIdRequest,
   getNoteByIdSuccess,
   getNoteByIdFailure,

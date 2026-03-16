@@ -27,6 +27,16 @@ export const AuthCard = () => {
     handleUsernameChange,
     handlePasswordChange,
     isLoadingLogin,
+    name,
+    signupEmail,
+    signupPassword,
+    confirmPassword,
+    isLoadingSignup,
+    handleSignup,
+    handleNameChange,
+    handleSignupEmailChange,
+    handleSignupPasswordChange,
+    handleConfirmPasswordChange,
   } = useAuthCard();
 
   return (
@@ -79,26 +89,51 @@ export const AuthCard = () => {
             </form>
           </TabsContent>
           <TabsContent value="signup">
-            <form>
+            <form onSubmit={handleSignup}>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="signup-name">Name</Label>
                   <Input
-                    id="email"
-                    placeholder="dev@example.com"
+                    id="signup-name"
+                    placeholder="Your name"
                     required
-                    type="email"
+                    type="text"
+                    value={name}
+                    onChange={handleNameChange}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input id="password" required type="password" />
+                  <Label htmlFor="signup-email">Email</Label>
+                  <Input
+                    id="signup-email"
+                    placeholder="dev@example.com"
+                    required
+                    type="email"
+                    value={signupEmail}
+                    onChange={handleSignupEmailChange}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-password">Password</Label>
+                  <Input
+                    id="signup-password"
+                    required
+                    type="password"
+                    value={signupPassword}
+                    onChange={handleSignupPasswordChange}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="confirm-password">Confirm Password</Label>
-                  <Input id="confirm-password" required type="password" />
+                  <Input
+                    id="confirm-password"
+                    required
+                    type="password"
+                    value={confirmPassword}
+                    onChange={handleConfirmPasswordChange}
+                  />
                 </div>
-                <Button className="w-full" type="submit">
+                <Button className="w-full" type="submit" loading={isLoadingSignup}>
                   Sign Up
                 </Button>
               </div>

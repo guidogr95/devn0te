@@ -103,13 +103,11 @@ class NoteController extends Controller
 				'details' => $errors->toArray()
 			], Response::HTTP_UNPROCESSABLE_ENTITY);
 		} catch (\Illuminate\Database\QueryException $e) {
-			// Check for unique constraint violation (Postgres: 23505)
 			if ($e->getCode() === '23505') {
 				Log::warning("Duplicate note title: {$validated['title']}");
 				return response()->json([
-					'error' => 'A note with this title already exists.',
-					'code' => 'NOTE_TITLE_DUPLICATE'
-				], Response::HTTP_CONFLICT);
+					'errors' => ['title' => ['A note with this title already exists.']]
+				], Response::HTTP_UNPROCESSABLE_ENTITY);
 			}
 			Log::error("Database error on note creation: {$e->getMessage()}");
 			return response()->json(['error' => 'Database error.'], Response::HTTP_INTERNAL_SERVER_ERROR);
@@ -161,6 +159,15 @@ class NoteController extends Controller
 				'errors' => $errors->all(),
 				'details' => $errors->toArray()
 			], Response::HTTP_UNPROCESSABLE_ENTITY);
+		} catch (\Illuminate\Database\QueryException $e) {
+			if ($e->getCode() === '23505') {
+				Log::warning("Duplicate note title on update for note $id");
+				return response()->json([
+					'errors' => ['title' => ['A note with this title already exists.']]
+				], Response::HTTP_UNPROCESSABLE_ENTITY);
+			}
+			Log::error("Database error on note update $id: {$e->getMessage()}");
+			return response()->json(['error' => 'Database error.'], Response::HTTP_INTERNAL_SERVER_ERROR);
 		} catch (\Exception $e) {
 
 			Log::error("Failed to update note $id: {$e->getMessage()}");

@@ -1,5 +1,6 @@
 "use-client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -20,6 +21,20 @@ import { ScrollArea } from "devnote/modules/shared";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github-dark.css";
 import "./monaco-editor.css";
+import { Columns2, Code2, Eye } from "lucide-react";
+
+type ViewMode = "split" | "editor" | "preview";
+
+function useEditorViewMode() {
+  const [viewMode, setViewMode] = useState<ViewMode>(
+    () => (localStorage.getItem("editor-view-mode") as ViewMode) || "split"
+  );
+  const setMode = useCallback((mode: ViewMode) => {
+    localStorage.setItem("editor-view-mode", mode);
+    setViewMode(mode);
+  }, []);
+  return { viewMode, setMode };
+}
 
 type Props = {
   note: NoteEntity;
@@ -71,7 +86,9 @@ export function registerNoteLinkCompletionProvider(
 }
 
 export const MonacoNoteEditor = ({ note }: Props) => {
+  const navigate = useNavigate();
   const monaco = useMonaco();
+  const { viewMode, setMode } = useEditorViewMode();
 
   const { handleEditorChange } = useNoteEditor();
   const localNotesList = useSelector(selectLocalNotesList);
@@ -138,7 +155,6 @@ export const MonacoNoteEditor = ({ note }: Props) => {
 
   useEffect(() => {
     if (monaco && note?.id) {
-      console.log("resolvedLinks:",resolvedLinks);
       const disposable = registerNoteLinkCompletionProvider(monaco, resolvedLinks);
       return () => disposable?.dispose();
     }
@@ -154,37 +170,98 @@ export const MonacoNoteEditor = ({ note }: Props) => {
 
   const { preview } = useRenderPreview({ resolvedLinks, content });
 
-  return (
-    <ResizablePanelGroup direction="horizontal">
-      <ResizablePanel defaultSize={50}>
-        <Editor
-          height="100%"
-          defaultLanguage="markdown"
-          theme="vim-dark"
-          value={note.content}
-          onChange={handleEditorUpdate}
-          onMount={handleEditorDidMount}
-          options={{
-            minimap: { enabled: false }, // Customize: No minimap for minimalism
-            wordWrap: "on", // Wrap lines
-            lineNumbers: "on", // Show line numbers
-          }}
-        />
-      </ResizablePanel>
-      <ResizableHandle />
-      <ResizablePanel defaultSize={50}>
-        <ScrollArea className="h-full rounded-md border">
-        <div className="p-4 h-full prose dark:prose-dark markdown-view markdown-body table-cell w-full">
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            rehypePlugins={[rehypeRaw, rehypeHighlight]}
-          >
-            {preview}
-          </ReactMarkdown>
-        </div>
+  const editorPanel = (
+    <Editor
+      height="100%"
+      defaultLanguage="markdown"
+      theme="vim-dark"
+      value={note.content}
+      onChange={handleEditorUpdate}
+      onMount={handleEditorDidMount}
+      options={{
+        minimap: { enabled: false },
+        wordWrap: "on",
+        lineNumbers: "on",
+      }}
+    />
+  );
 
-        </ScrollArea>
-      </ResizablePanel>
-    </ResizablePanelGroup>
+  const previewPanel = (
+    <ScrollArea className="h-full rounded-md border">
+      <div className="p-4 h-full prose dark:prose-dark markdown-view markdown-body table-cell w-full">
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          rehypePlugins={[rehypeRaw, rehypeHighlight]}
+          components={{
+            a: ({ href, children, ...props }) => {
+              if (href?.startsWith("devnote://note/")) {
+                const noteId = href.replace("devnote://note/", "");
+                return (
+                  <button
+                    className="wiki-link"
+                    onClick={() => navigate({ to: "/dashboard/notes/$id", params: { id: noteId } })}
+                  >
+                    {children}
+                  </button>
+                );
+              }
+              return <a href={href} {...props}>{children}</a>;
+            },
+          }}
+        >
+          {preview}
+        </ReactMarkdown>
+      </div>
+    </ScrollArea>
+  );
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-start px-3 py-1 border-b border-gray-700 shrink-0">
+        <div className="flex gap-0.5">
+          <button
+            onClick={() => setMode("editor")}
+            className={`px-1.5 py-1 rounded-sm ${
+              viewMode === "editor" ? "text-green-400" : "text-gray-600 hover:text-gray-400"
+            }`}
+          >
+            <Code2 className="h-3.5 w-3.5" />
+          </button>
+          <button
+            onClick={() => setMode("split")}
+            className={`px-1.5 py-1 rounded-sm ${
+              viewMode === "split" ? "text-green-400" : "text-gray-600 hover:text-gray-400"
+            }`}
+          >
+            <Columns2 className="h-3.5 w-3.5" />
+          </button>
+          <button
+            onClick={() => setMode("preview")}
+            className={`px-1.5 py-1 rounded-sm ${
+              viewMode === "preview" ? "text-green-400" : "text-gray-600 hover:text-gray-400"
+            }`}
+          >
+            <Eye className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+      {viewMode === "split" && (
+        <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
+          <ResizablePanel defaultSize={50} minSize={10}>
+            {editorPanel}
+          </ResizablePanel>
+          <ResizableHandle />
+          <ResizablePanel defaultSize={50} minSize={10}>
+            {previewPanel}
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      )}
+      {viewMode === "editor" && (
+        <div className="flex-1 min-h-0">{editorPanel}</div>
+      )}
+      {viewMode === "preview" && (
+        <div className="flex-1 min-h-0 overflow-hidden">{previewPanel}</div>
+      )}
+    </div>
   );
 };
