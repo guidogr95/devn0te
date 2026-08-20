@@ -1,0 +1,60 @@
+services:
+
+  backend:
+    entrypoint: ["sh", "/app/backend/entrypoint.sh"]
+    command: ["php", "artisan", "serve", "--host=0.0.0.0"]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: pgsqldb
+      DB_USERNAME: my_user
+      DB_PASSWORD: my_password
+    depends_on:
+      - db
+    networks:
+      - app
+    volumes:
+      - ./backend:/app/backend
+    ports:
+      - 8000:8000
+
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   command: ["npm", "run", "start", "--", "--host", "0.0.0.0"]
+  #   # entrypoint: ["sh", "/app/frontend/entrypoint.sh"]
+  #   networks:
+  #     - app
+  #   tty: true
+  #   ports:
+  #     - 5173:5173
+  #   volumes:
+  #     - ./frontend:/app/frontend
+  #     - /app/frontend/node_modules
+  #   depends_on:
+  #     - backend
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: pgsqldb
+      POSTGRES_USER: my_user
+      POSTGRES_PASSWORD: my_password
+    networks:
+      - app
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+     - 5433:5432
+
+networks:
+  app:
+    driver: bridge
+
+volumes:
+  postgres_data:

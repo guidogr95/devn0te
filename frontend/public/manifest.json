@@ -1,0 +1,17 @@
+{
+  "name": "devn0te",
+  "short_name": "devn0te",
+  "description": "Local-first markdown note-taking app for developers",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#111827",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

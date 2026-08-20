@@ -1,0 +1,8 @@
+.scroll-area-parent {
+
+	&.full-height {
+		& > div {
+			height: 100%;
+		}
+	}
+}

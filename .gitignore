@@ -1,0 +1,12 @@
+client.rest
+.history/
+.dev-notes.md
+.local_files/
+.opencode/
+.github/features/
+.github/skills/
+.github/instructions/
+.github/copilot-instructions.md
+opencode.json
+*.tsbuildinfo
+.env
